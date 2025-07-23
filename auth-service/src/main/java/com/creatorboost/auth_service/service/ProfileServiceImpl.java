@@ -17,6 +17,7 @@ import java.util.UUID;
 public class ProfileServiceImpl implements   ProfileService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Override
     public ProfileResponse createProfile(ProfileRequest request){
@@ -34,6 +35,48 @@ public class ProfileServiceImpl implements   ProfileService {
         UserEntity existingUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
         return convertToProfileResponse(existingUser);
+    }
+
+    @Override
+    public void sendResetOtp(String email) {
+        UserEntity existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
+
+        //generate 6 digi otp
+        String resetOtp = String.format("%06d", (int) (Math.random() * 1000000));
+
+        //update the user entity with the reset OTP
+        existingUser.setResetOtp(resetOtp);
+        existingUser.setResetOtpExpiry(System.currentTimeMillis() + 15 * 60 * 1000); // 15 minutes expiry
+
+        // save the updated user entity
+        userRepository.save(existingUser);
+
+        try{
+            emailService.sendPasswordResetEmail(existingUser.getEmail(), resetOtp);
+        }catch(Exception e){
+            throw new RuntimeException("unable to send reset OTP", e);
+        }
+    }
+
+    @Override
+    public void resetPassword(String email, String resetOtp, String newPassword) {
+        UserEntity existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
+
+        if (existingUser.getResetOtp()==null || !existingUser.getResetOtp().equals(resetOtp)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid reset OTP");
+        }
+
+        if (existingUser.getResetOtpExpiry() < System.currentTimeMillis()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reset OTP has expired");
+        }
+        existingUser.setPassword(passwordEncoder.encode(newPassword));
+        existingUser.setResetOtp(null); // Clear the reset OTP after successful reset
+        existingUser.setResetOtpExpiry(0); // Clear the expiry time
+
+        userRepository.save(existingUser);
+
     }
 
     private UserEntity convertToUserEntity(ProfileRequest request) {
