@@ -84,7 +84,7 @@ public class ProfileServiceImpl implements   ProfileService {
     public void sendOtp(String email) {
         UserEntity existingUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        if( existingUser.getIsAccountVerified() != null && existingUser.getIsAccountVerified()) {
+        if( existingUser.isAccountVerified()) {
             return;
         }
         String otp = String.format("%06d", (int) (Math.random() * 1000000));
@@ -113,7 +113,7 @@ public class ProfileServiceImpl implements   ProfileService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP has expired");
         }
 
-        existingUser.setIsAccountVerified(true);
+        existingUser.setAccountVerified(true);
         existingUser.setVerifyOtp(null); // Clear the OTP after successful verification
         existingUser.setVerifyOtpExpiry(0); // Clear the expiry time
         userRepository.save(existingUser);
