@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Instant;
+
+
 @Entity
 @Data
 @Table(name = "users")
@@ -26,15 +29,15 @@ public class UserEntity {
     private String password;
     private String verifyOtp;
     private boolean isAccountVerified;
-    private long verifyOtpExpiry;
+    private Instant verifyOtpExpiry;
     private  String resetOtp;
-    private long resetOtpExpiry;
+    private Instant resetOtpExpiry;
 
     @CreationTimestamp
     @Column( updatable = false)
-    private long createdAt;
+    private Instant createdAt;
     @UpdateTimestamp
-    private long updatedAt;
+    private Instant  updatedAt;
 
 
 }

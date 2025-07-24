@@ -1,0 +1,23 @@
+services:
+  mongodb:
+    image: mongo
+    container_name: chat-service-db
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo:/data
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=chamindu
+      - MONGO_INITDB_ROOT_PASSWORD=chamindu
+  mongo-express:
+    image: mongo-express
+    container_name: mongo_express
+    restart: always
+    ports:
+      - 8082:8082
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=chamindu
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=chamindu
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+volumes:
+  mongo: {}

@@ -24,6 +24,7 @@
 
     <modules>
         <module>auth-service</module>
+        <module>chat-service</module>
     </modules>
 
     <dependencyManagement>

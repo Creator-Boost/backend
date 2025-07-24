@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -48,7 +49,7 @@ public class ProfileServiceImpl implements   ProfileService {
 
         //update the user entity with the reset OTP
         existingUser.setResetOtp(resetOtp);
-        existingUser.setResetOtpExpiry(System.currentTimeMillis() + 15 * 60 * 1000); // 15 minutes expiry
+        existingUser.setResetOtpExpiry(Instant.now().plusSeconds(15 * 60)); // 15 minutes
 
         // save the updated user entity
         userRepository.save(existingUser);
@@ -69,12 +70,12 @@ public class ProfileServiceImpl implements   ProfileService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid reset OTP");
         }
 
-        if (existingUser.getResetOtpExpiry() < System.currentTimeMillis()) {
+        if (existingUser.getResetOtpExpiry().isBefore(Instant.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reset OTP has expired");
         }
         existingUser.setPassword(passwordEncoder.encode(newPassword));
         existingUser.setResetOtp(null); // Clear the reset OTP after successful reset
-        existingUser.setResetOtpExpiry(0); // Clear the expiry time
+        existingUser.setResetOtpExpiry(null); // Clear the expiry time
 
         userRepository.save(existingUser);
 
@@ -88,10 +89,10 @@ public class ProfileServiceImpl implements   ProfileService {
             return;
         }
         String otp = String.format("%06d", (int) (Math.random() * 1000000));
-        long expiryTime = System.currentTimeMillis() + 10*60 * 60 * 1000; // 10 hours expiry
+
 
         existingUser.setVerifyOtp(otp);
-        existingUser.setVerifyOtpExpiry(expiryTime);
+        existingUser.setVerifyOtpExpiry(Instant.now().plusSeconds(10 * 60 * 60)); // 10 hours
 
         userRepository.save(existingUser);
 
@@ -109,13 +110,13 @@ public class ProfileServiceImpl implements   ProfileService {
         if (existingUser.getVerifyOtp() == null || !existingUser.getVerifyOtp().equals(otp)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");
         }
-        if (existingUser.getVerifyOtpExpiry() < System.currentTimeMillis()) {
+        if(existingUser.getVerifyOtpExpiry().isBefore(Instant.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP has expired");
         }
 
         existingUser.setAccountVerified(true);
         existingUser.setVerifyOtp(null); // Clear the OTP after successful verification
-        existingUser.setVerifyOtpExpiry(0); // Clear the expiry time
+        existingUser.setVerifyOtpExpiry(null); // Clear the expiry time
         userRepository.save(existingUser);
     }
 
@@ -133,9 +134,9 @@ public class ProfileServiceImpl implements   ProfileService {
                .name(request.getName())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .isAccountVerified(false)
-               .resetOtpExpiry(0)
+               .resetOtpExpiry(null)
                .verifyOtp(null)
-               .verifyOtpExpiry(0)
+               .verifyOtpExpiry(null)
                 .resetOtp(null)
                 .build();
 
