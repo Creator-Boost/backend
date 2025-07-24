@@ -6,6 +6,7 @@ import com.creatorboost.auth_service.io.ProfileResponse;
 import com.creatorboost.auth_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -77,6 +78,52 @@ public class ProfileServiceImpl implements   ProfileService {
 
         userRepository.save(existingUser);
 
+    }
+
+    @Override
+    public void sendOtp(String email) {
+        UserEntity existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        if( existingUser.getIsAccountVerified() != null && existingUser.getIsAccountVerified()) {
+            return;
+        }
+        String otp = String.format("%06d", (int) (Math.random() * 1000000));
+        long expiryTime = System.currentTimeMillis() + 10*60 * 60 * 1000; // 10 hours expiry
+
+        existingUser.setVerifyOtp(otp);
+        existingUser.setVerifyOtpExpiry(expiryTime);
+
+        userRepository.save(existingUser);
+
+        try {
+            emailService.sendOtpEmail(existingUser.getEmail(), otp);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to send OTP", e);
+        }
+    }
+
+    @Override
+    public void verifyOtp(String email, String otp) {
+        UserEntity existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        if (existingUser.getVerifyOtp() == null || !existingUser.getVerifyOtp().equals(otp)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");
+        }
+        if (existingUser.getVerifyOtpExpiry() < System.currentTimeMillis()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP has expired");
+        }
+
+        existingUser.setIsAccountVerified(true);
+        existingUser.setVerifyOtp(null); // Clear the OTP after successful verification
+        existingUser.setVerifyOtpExpiry(0); // Clear the expiry time
+        userRepository.save(existingUser);
+    }
+
+    @Override
+    public String getLoggedUserId(String email) {
+        UserEntity existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        return existingUser.getUserId();
     }
 
     private UserEntity convertToUserEntity(ProfileRequest request) {

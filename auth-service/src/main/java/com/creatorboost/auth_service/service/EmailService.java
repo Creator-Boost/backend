@@ -38,4 +38,16 @@ public class EmailService {
                 "The CreatorBoost Team");
         mailSender.send(message);
     }
+
+    public void sendOtpEmail(String toEmail, String otp) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setFrom(fromEmail);
+        message.setSubject("Account Verification OTP");
+        message.setText("Your OTP code is: " + otp + "\n\n" +
+                "Please use this code to complete your action. If you did not request this, please ignore this email.\n\n" +
+                "Best regards,\n" +
+                "The CreatorBoost Team");
+        mailSender.send(message);
+    }
 }

@@ -10,6 +10,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     UserEntity findByVerifyOtp(String verifyOtp);
     UserEntity findByResetOtp(String resetOtp);
     boolean existsByEmail(String email);
-    boolean existsByVerifyOtp(String verifyOtp);
-    boolean existsByResetOtp(String resetOtp);
+
 }
