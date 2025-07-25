@@ -1,6 +1,5 @@
 package com.creatorboost.chat_service.service;
 
-
 import com.creatorboost.chat_service.entity.Status;
 import com.creatorboost.chat_service.entity.User;
 import com.creatorboost.chat_service.repository.UserRepository;
@@ -16,6 +15,7 @@ public class UserService {
     private final UserRepository repository;
 
     public void saveUser(User user) {
+        System.out.println("Saving user: " + user.getUserName());
         user.setStatus(Status.ONLINE);
         repository.save(user);
     }

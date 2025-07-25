@@ -1,7 +1,5 @@
 package com.creatorboost.chat_service.config;
 
-
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
@@ -29,6 +27,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
+                // FIXED: Specify exact origins instead of wildcard
+                .setAllowedOrigins(
+                        "http://localhost:5500",
+                        "http://127.0.0.1:5500",
+                        "http://localhost:3000", // For React apps
+                        "http://localhost:8080",  // For other dev servers
+                        "http://localhost:5173" // For Vite dev server
+                )
+                .setAllowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*") // Allow any port on localhost
                 .withSockJS();
     }
 
