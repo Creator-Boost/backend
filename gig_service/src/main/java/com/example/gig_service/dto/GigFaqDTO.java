@@ -9,4 +9,9 @@ public class GigFaqDTO {
     private String question;
     private String answer;
     // Getters & Setters
+
+
 }
+
+
+
