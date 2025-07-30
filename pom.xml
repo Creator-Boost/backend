@@ -23,8 +23,12 @@
     </properties>
 
     <modules>
+
         <module>auth-service</module>
         <module>chat-service</module>
+
+        <!-- add other services her     e if needed -->
+
     </modules>
 
     <dependencyManagement>
