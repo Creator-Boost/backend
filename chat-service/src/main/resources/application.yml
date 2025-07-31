@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: chat-service
+
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: chat-service-db
+      username: chamindu
+      password: chamindu
+      authentication-database: admin
+
+server:
+  port: 8088
