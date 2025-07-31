@@ -5,6 +5,7 @@ import com.creatorboost.auth_service.io.ProfileRequest;
 import com.creatorboost.auth_service.io.ProfileResponse;
 import com.creatorboost.auth_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,13 +20,24 @@ import java.util.UUID;
 public class ProfileServiceImpl implements   ProfileService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+    private final KafkaProducerService kafkaProducerService;
+
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ProfileServiceImpl.class);
 
     @Override
     public ProfileResponse createProfile(ProfileRequest request){
         UserEntity newProfile= convertToUserEntity(request);
         if (!userRepository.existsByEmail(newProfile.getEmail())) {
             newProfile = userRepository.save(newProfile);
+
+            // Send welcome email via Kafka
+            try {
+                kafkaProducerService.sendWelcomeEmail(newProfile.getEmail(), newProfile.getName());
+                logger.info("✅ Welcome email notification sent for user: {}", newProfile.getEmail());
+            } catch (Exception e) {
+                logger.error("❌ Failed to send welcome email notification for user: {}", newProfile.getEmail(), e);
+                // Don't throw exception here as user creation was successful
+            }
             return convertToProfileResponse(newProfile);
         }
 
@@ -55,8 +67,11 @@ public class ProfileServiceImpl implements   ProfileService {
         userRepository.save(existingUser);
 
         try{
-            emailService.sendPasswordResetEmail(existingUser.getEmail(), resetOtp);
+            //emailService.sendPasswordResetEmail(existingUser.getEmail(), resetOtp);
+            kafkaProducerService.sendPasswordResetOtp(existingUser.getEmail(), resetOtp);
+            logger.info("✅ Password reset OTP notification sent for user: {}", existingUser.getEmail());
         }catch(Exception e){
+            logger.error("❌ Failed to send password reset OTP notification for user: {}", existingUser.getEmail(), e);
             throw new RuntimeException("unable to send reset OTP", e);
         }
     }
@@ -97,8 +112,11 @@ public class ProfileServiceImpl implements   ProfileService {
         userRepository.save(existingUser);
 
         try {
-            emailService.sendOtpEmail(existingUser.getEmail(), otp);
+            //emailService.sendOtpEmail(existingUser.getEmail(), otp);
+            kafkaProducerService.sendVerificationOtp(existingUser.getEmail(), otp);
+            logger.info("✅ Verification OTP notification sent for user: {}", existingUser.getEmail());
         } catch (Exception e) {
+            logger.error("❌ Failed to send verification OTP notification for user: {}", existingUser.getEmail(), e);
             throw new RuntimeException("Unable to send OTP", e);
         }
     }

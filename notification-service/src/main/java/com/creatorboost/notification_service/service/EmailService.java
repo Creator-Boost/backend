@@ -1,4 +1,4 @@
-package com.creatorboost.auth_service.service;
+package com.creatorboost.notification_service.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

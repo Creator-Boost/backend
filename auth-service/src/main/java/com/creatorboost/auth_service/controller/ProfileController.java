@@ -3,7 +3,6 @@ package com.creatorboost.auth_service.controller;
 import com.creatorboost.auth_service.io.ProfileRequest;
 import com.creatorboost.auth_service.io.ProfileResponse;
 import com.creatorboost.auth_service.io.ResetPasswordRequest;
-import com.creatorboost.auth_service.service.EmailService;
 import com.creatorboost.auth_service.service.ProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +16,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class ProfileController {
 
     private final ProfileService profileService;
-    private final EmailService emailService;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public ProfileResponse register(@Valid @RequestBody ProfileRequest request){
         ProfileResponse response = profileService.createProfile(request);
-        emailService.sendWelcomeEmail(response.getEmail(), response.getName());
+        //emailService.sendWelcomeEmail(response.getEmail(), response.getName());
         return response;
     }
     @GetMapping("/profile")

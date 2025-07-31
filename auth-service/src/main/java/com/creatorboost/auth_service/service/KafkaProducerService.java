@@ -1,6 +1,6 @@
 package com.creatorboost.auth_service.service;
 
-import com.creatorboost.auth_service.io.MessageDto;
+import dto.EmailMessageDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,38 +18,65 @@ public class KafkaProducerService {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaProducerService.class);
 
-    @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${spring.kafka.template.default-topic}")
     private String topicName;
 
-    public void sendMessage(String message) {
+    public KafkaProducerService(KafkaTemplate<String, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+
+    public void sendEmailNotification(EmailMessageDto message) {
         try {
-            // Create message DTO
-            dto.MessageDto messageDto = new dto.MessageDto(
-                    message,
-                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    "auth-service"
-            );
-
-            logger.info("🚀 AUTH SERVICE: Preparing to send message to topic: {}", topicName);
-            logger.info("📤 AUTH SERVICE: Message content: {}", messageDto);
-
-            // Send message
-            CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topicName, messageDto);
-
-            future.whenComplete((result, exception) -> {
-                if (exception == null) {
-                    logger.info("✅ AUTH SERVICE: Message sent successfully to topic: {} with offset: {}",
-                            topicName, result.getRecordMetadata().offset());
-                } else {
-                    logger.error("❌ AUTH SERVICE: Failed to send message to topic: {}", topicName, exception);
-                }
-            });
-
+            logger.info("🚀 Sending email notification: {}", message);
+            kafkaTemplate.send(topicName, message)
+                    .whenComplete((result, ex) -> {
+                        if (ex == null) {
+                            logger.info("✅ Successfully sent email: {}", message.getEmailType());
+                        } else {
+                            logger.error("❌ Failed to send email notification", ex);
+                        }
+                    });
         } catch (Exception e) {
-            logger.error("💥 AUTH SERVICE: Error occurred while sending message", e);
+            logger.error("💥 Error while sending email notification", e);
         }
+    }
+
+    public void sendWelcomeEmail(String toEmail, String name) {
+        EmailMessageDto emailMessage = new EmailMessageDto(
+                toEmail,
+                name,
+                null,
+                "WELCOME",
+                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                "auth-service"
+        );
+        sendEmailNotification(emailMessage);
+    }
+
+    public void sendPasswordResetOtp(String toEmail, String otp) {
+        EmailMessageDto emailMessage = new EmailMessageDto(
+                toEmail,
+                null,
+                otp,
+                "PASSWORD_RESET_OTP",
+                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                "auth-service"
+        );
+        sendEmailNotification(emailMessage);
+    }
+    public void sendVerificationOtp(String toEmail, String otp) {
+        EmailMessageDto emailMessage = new EmailMessageDto(
+                toEmail,
+                null,
+                otp,
+                "VERIFICATION_OTP",
+                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                "auth-service"
+        );
+        sendEmailNotification(emailMessage);
     }
 }
