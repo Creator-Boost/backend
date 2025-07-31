@@ -23,10 +23,11 @@
     </properties>
 
     <modules>
+
         <module>auth-service</module>
         <module>chat-service</module>
-        <module>notification-service</module>
 
+        <!-- add other services her     e if needed -->
 
     </modules>
 
