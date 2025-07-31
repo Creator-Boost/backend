@@ -25,6 +25,9 @@
     <modules>
         <module>auth-service</module>
         <module>chat-service</module>
+        <module>notification-service</module>
+
+
     </modules>
 
     <dependencyManagement>
