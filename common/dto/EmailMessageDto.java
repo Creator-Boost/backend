@@ -9,6 +9,9 @@ public class EmailMessageDto {
     private String timestamp;
     private String serviceFrom;
 
+    // ✅ Add no-args constructor for Jackson
+    public EmailMessageDto() {}
+
     public EmailMessageDto(String toEmail, String name,String otp, String emailType, String timestamp, String serviceFrom) {
         this.toEmail = toEmail;
         this.name = name;

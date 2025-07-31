@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to CreatorBoost</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: #fff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 30px 25px;
+            line-height: 1.6;
+        }
+        .content p {
+            margin-bottom: 18px;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: block;
+            width: fit-content;
+            margin: 0 auto;
+        }
+        .button:hover {
+            background-color: #43a047;
+        }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #888;
+            background-color: #f0f0f0;
+        }
+        @media screen and (max-width: 600px) {
+            .container {
+                border-radius: 0;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Welcome to CreatorBoost!</h1>
+    </div>
+    <div class="content">
+        <p>Hello <span th:text="${name}">User</span>,</p>
+        <p>We're absolutely thrilled to have you on board! At <strong>CreatorBoost</strong>, we're passionate about helping creators like you shine and scale with ease.</p>
+        <p>Get ready to unlock tools, insights, and support tailored to boost your content journey.</p>
+
+        <a href="https://creatorboost.com/get-started" class="button">🚀 Get Started</a>
+
+        <p>Need assistance or have questions? Simply reply to this email or visit our support page. We're here for you!</p>
+    </div>
+    <div class="footer">
+        <p>Cheers,<br>The CreatorBoost Team</p>
+        <p>© 2025 CreatorBoost Inc. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>
