@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Creator-Boost.iml" filepath="$PROJECT_DIR$/Creator-Boost.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/CreatorBoost.iml" filepath="$PROJECT_DIR$/.idea/CreatorBoost.iml" />
     </modules>
   </component>
 </project>
