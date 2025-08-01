@@ -24,7 +24,7 @@ public class ImageService {
                 "resource_type", "auto"
             ));
 
-        return uploadResult.get("secure_url").toString();
+        return (String) uploadResult.get("secure_url");
     }
 
     public List<String> uploadMultipleImages(MultipartFile[] files) throws IOException {

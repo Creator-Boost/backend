@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-
     <file url="file://$PROJECT_DIR$/api-request/auth-service1/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/api-request/auth-service1/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/api-request/src/main/java" charset="UTF-8" />
@@ -9,9 +8,15 @@
     <file url="file://$PROJECT_DIR$/auth-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/auth-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/chat-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/target/classes/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/target/classes/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/target/classes/target/classes/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/target/classes/target/classes/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/gig_service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/notification-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/order-booking_service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/order_service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/gig_service/src/main/java" charset="UTF-8" />
-
   </component>
 </project>
