@@ -40,13 +40,13 @@ public class EmailService {
         mailSender.send(message);*/
     }
 
-    public void sendPasswordResetEmail(String toEmail, String otp) {
+    public void sendPasswordResetEmail(String toEmail, String resetLink) {
         Context context = new Context();
-        context.setVariable("otp", otp);
+        context.setVariable("resetLink", resetLink);
         context.setVariable("emailType", "password reset");
 
-        String htmlContent = templateEngine.process("otp-email", context);
-        sendHtmlEmail(toEmail, "Password Reset OTP", htmlContent);
+        String htmlContent = templateEngine.process("reset-password", context);
+        sendHtmlEmail(toEmail, "Password Reset", htmlContent);
     }
 
     public void sendOtpEmail(String toEmail, String otp) {
