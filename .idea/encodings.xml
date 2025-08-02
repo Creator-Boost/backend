@@ -8,6 +8,7 @@
     <file url="file://$PROJECT_DIR$/auth-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/auth-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/chat-service/src/main/java" charset="UTF-8" />
+
     <file url="file://$PROJECT_DIR$/common/target/classes/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/target/classes/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/target/classes/target/classes/src/main/java" charset="UTF-8" />
@@ -16,6 +17,7 @@
     <file url="file://$PROJECT_DIR$/notification-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/order-booking_service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/order_service/src/main/java" charset="UTF-8" />
+
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

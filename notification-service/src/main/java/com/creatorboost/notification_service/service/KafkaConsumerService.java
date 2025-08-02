@@ -1,36 +1,35 @@
 package com.creatorboost.notification_service.service;
 
-import dto.MessageDto;
+import com.creatorboost.notification_service.factory.EmailHandlerFactory;
+import dto.EmailMessageDto;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class KafkaConsumerService {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaConsumerService.class);
+    private  final EmailHandlerFactory handlerFactory;
+    private final EmailService emailService;
 
     @KafkaListener(topics = "email_default_topic", groupId = "notification", containerFactory = "kafkaListenerContainerFactory")
-    public void consumeMessage(MessageDto messageDto) {
+    public void consumeEmailMessage(EmailMessageDto emailMessage) {
         try {
-            logger.info("🎯 NOTIFICATION SERVICE: Parsed message successfully");
-            logger.info("📋 NOTIFICATION SERVICE: Message Details:");
-            logger.info("   ├── Content: {}", messageDto.getMessage());
-            logger.info("   ├── From: {}", messageDto.getServiceFrom());
-            logger.info("   └── Timestamp: {}", messageDto.getTimestamp());
+            logger.info("Received email from {} service, type: {}",
+                    emailMessage.getServiceFrom(), emailMessage.getEmailType());
 
-            processNotification(messageDto);
+            EmailHandler handler = handlerFactory.getHandler(emailMessage);
+            handler.handle(emailMessage, emailService);
 
-            logger.info("✅ NOTIFICATION SERVICE: Message processed successfully");
-
+            logger.info("Successfully processed email from {} service",
+                    emailMessage.getServiceFrom());
         } catch (Exception e) {
-            logger.error("❌ NOTIFICATION SERVICE: Error processing message: {}", messageDto, e);
+            logger.error("Error processing email from {} service: {}",
+                    emailMessage.getServiceFrom(), emailMessage, e);
         }
-    }
-
-    private void processNotification(MessageDto messageDto) {
-        logger.info("🔔 NOTIFICATION SERVICE: Processing notification for message: {}", messageDto.getMessage());
-        logger.info("📧 NOTIFICATION SERVICE: Notification sent successfully for message from {}", messageDto.getServiceFrom());
     }
 }

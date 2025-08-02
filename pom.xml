@@ -26,6 +26,8 @@
 
         <module>auth-service</module>
         <module>chat-service</module>
+        <module>notification-service</module>
+        <module>gig_service</module>
 
         <!-- add other services her     e if needed -->
 

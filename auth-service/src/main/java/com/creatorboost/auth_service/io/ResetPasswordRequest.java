@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResetPasswordRequest {
-    @NotBlank(message = "Email cannot be blank")
-    private String email;
     @NotBlank(message = "Reset OTP is required")
     private String resetOtp;
     @NotBlank(message = "New password cannot be blank")
