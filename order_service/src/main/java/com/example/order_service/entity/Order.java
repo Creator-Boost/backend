@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +24,10 @@ public class Order {
     private UUID gigPackageId;
     private UUID buyerId;
     private UUID sellerId;
+
+    // Add amount field to store the order amount
+    private BigDecimal amount;
+    private String packageName;
 
     @Lob
     private String requirements;
