@@ -159,6 +159,7 @@ public class ProfileServiceImpl implements   ProfileService {
                .userId(UUID.randomUUID().toString())
                .name(request.getName())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
                 .isAccountVerified(false)
                .resetOtpExpiry(null)
                .verifyOtp(null)
@@ -173,6 +174,7 @@ public class ProfileServiceImpl implements   ProfileService {
                 .name(newProfile.getName())
                 .email(newProfile.getEmail())
                 .userId(newProfile.getUserId())
+                .role(newProfile.getRole())
                 .isAccountVerified(newProfile.isAccountVerified())
                 .build();
     }

@@ -27,6 +27,8 @@ public class UserEntity {
     @Column(unique = true)
     private String email;
     private String password;
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
     private String verifyOtp;
     private boolean isAccountVerified;
     private Instant verifyOtpExpiry;
@@ -41,3 +43,4 @@ public class UserEntity {
 
 
 }
+
