@@ -6,6 +6,7 @@ import com.example.gig_service.entity.GigFaq;
 import com.example.gig_service.entity.GigImage;
 import com.example.gig_service.entity.GigPackage;
 import com.example.gig_service.repository.GigRepository;
+import com.example.gig_service.repository.GigPackageRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,12 +28,17 @@ class GigServiceTest {
     @Mock
     private GigRepository gigRepository;
 
+    @Mock
+    private GigPackageRepository gigPackageRepository;
+
     @InjectMocks
     private GigService gigService;
 
     private UUID testGigId;
     private UUID testSellerId;
+    private UUID testPackageId;
     private Gig testGig;
+    private GigPackage testGigPackage;
     private GigRequestDTO testGigRequestDTO;
     private GigResponseDTO testGigResponseDTO;
 
@@ -40,9 +46,11 @@ class GigServiceTest {
     void setUp() {
         testGigId = UUID.randomUUID();
         testSellerId = UUID.randomUUID();
+        testPackageId = UUID.randomUUID();
 
         // Setup test entities
         testGig = createTestGig();
+        testGigPackage = createTestGigPackage();
         testGigRequestDTO = createTestGigRequestDTO();
         testGigResponseDTO = createTestGigResponseDTO();
     }
@@ -216,6 +224,134 @@ class GigServiceTest {
         verify(gigRepository, never()).deleteById(testGigId);
     }
 
+    @Test
+    void getGigWithPackageDetails_WithValidIds_ShouldReturnGigWithPackageDetailsDTO() {
+        // Arrange
+        when(gigRepository.findById(testGigId)).thenReturn(Optional.of(testGig));
+        when(gigPackageRepository.findByGigIdAndPackageId(testGigId, testPackageId))
+                .thenReturn(Optional.of(testGigPackage));
+
+        // Act
+        GigWithPackageDetailsDTO result = gigService.getGigWithPackageDetails(testGigId, testPackageId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(testGigId, result.getGigId());
+        assertEquals(testGig.getTitle(), result.getTitle());
+        assertNotNull(result.getSelectedPackage());
+        assertEquals(testPackageId, result.getSelectedPackage().getPackageId());
+        assertEquals(testGigPackage.getName(), result.getSelectedPackage().getName());
+
+        verify(gigRepository).findById(testGigId);
+        verify(gigPackageRepository).findByGigIdAndPackageId(testGigId, testPackageId);
+    }
+
+    @Test
+    void getGigWithPackageDetails_WithInvalidGigId_ShouldThrowException() {
+        // Arrange
+        when(gigRepository.findById(testGigId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class,
+                () -> gigService.getGigWithPackageDetails(testGigId, testPackageId));
+
+        assertTrue(exception.getMessage().contains("Gig not found with ID: " + testGigId));
+        verify(gigRepository).findById(testGigId);
+        verify(gigPackageRepository, never()).findByGigIdAndPackageId(any(), any());
+    }
+
+    @Test
+    void getGigWithPackageDetails_WithInvalidPackageId_ShouldThrowException() {
+        // Arrange
+        when(gigRepository.findById(testGigId)).thenReturn(Optional.of(testGig));
+        when(gigPackageRepository.findByGigIdAndPackageId(testGigId, testPackageId))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class,
+                () -> gigService.getGigWithPackageDetails(testGigId, testPackageId));
+
+        assertTrue(exception.getMessage().contains("Package not found with ID: " + testPackageId));
+        verify(gigRepository).findById(testGigId);
+        verify(gigPackageRepository).findByGigIdAndPackageId(testGigId, testPackageId);
+    }
+
+    @Test
+    void verifyGigAndPackageExists_WithValidIds_ShouldReturnTrue() {
+        // Arrange
+        when(gigRepository.existsById(testGigId)).thenReturn(true);
+        when(gigPackageRepository.existsByGigIdAndId(testGigId, testPackageId)).thenReturn(true);
+
+        // Act
+        boolean result = gigService.verifyGigAndPackageExists(testGigId, testPackageId);
+
+        // Assert
+        assertTrue(result);
+        verify(gigRepository).existsById(testGigId);
+        verify(gigPackageRepository).existsByGigIdAndId(testGigId, testPackageId);
+    }
+
+    @Test
+    void verifyGigAndPackageExists_WithInvalidGigId_ShouldReturnFalse() {
+        // Arrange
+        when(gigRepository.existsById(testGigId)).thenReturn(false);
+
+        // Act
+        boolean result = gigService.verifyGigAndPackageExists(testGigId, testPackageId);
+
+        // Assert
+        assertFalse(result);
+        verify(gigRepository).existsById(testGigId);
+        verify(gigPackageRepository, never()).existsByGigIdAndId(any(), any());
+    }
+
+    @Test
+    void verifyGigAndPackageExists_WithInvalidPackageId_ShouldReturnFalse() {
+        // Arrange
+        when(gigRepository.existsById(testGigId)).thenReturn(true);
+        when(gigPackageRepository.existsByGigIdAndId(testGigId, testPackageId)).thenReturn(false);
+
+        // Act
+        boolean result = gigService.verifyGigAndPackageExists(testGigId, testPackageId);
+
+        // Assert
+        assertFalse(result);
+        verify(gigRepository).existsById(testGigId);
+        verify(gigPackageRepository).existsByGigIdAndId(testGigId, testPackageId);
+    }
+
+    @Test
+    void getPackagesByGigId_WithValidGigId_ShouldReturnPackagesList() {
+        // Arrange
+        List<GigPackage> packages = Arrays.asList(testGigPackage, createAnotherTestGigPackage());
+        when(gigRepository.existsById(testGigId)).thenReturn(true);
+        when(gigPackageRepository.findByGigId(testGigId)).thenReturn(packages);
+
+        // Act
+        List<GigPackageDetailsDTO> result = gigService.getPackagesByGigId(testGigId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(testPackageId, result.get(0).getPackageId());
+        verify(gigRepository).existsById(testGigId);
+        verify(gigPackageRepository).findByGigId(testGigId);
+    }
+
+    @Test
+    void getPackagesByGigId_WithInvalidGigId_ShouldThrowException() {
+        // Arrange
+        when(gigRepository.existsById(testGigId)).thenReturn(false);
+
+        // Act & Assert
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class,
+                () -> gigService.getPackagesByGigId(testGigId));
+
+        assertTrue(exception.getMessage().contains("Gig not found with ID: " + testGigId));
+        verify(gigRepository).existsById(testGigId);
+        verify(gigPackageRepository, never()).findByGigId(any());
+    }
+
     // Helper methods
     private Gig createTestGig() {
         Gig gig = new Gig();
@@ -306,6 +442,28 @@ class GigServiceTest {
         dto.setPackages(new ArrayList<>());
         dto.setFaqs(new ArrayList<>());
         return dto;
+    }
+
+    private GigPackage createTestGigPackage() {
+        GigPackage gigPackage = new GigPackage();
+        gigPackage.setId(testPackageId);
+        gigPackage.setGig(testGig);
+        gigPackage.setName("Basic Package");
+        gigPackage.setPrice(new BigDecimal("50.00"));
+        gigPackage.setDeliveryDays(3);
+        gigPackage.setDescription("Basic package description");
+        return gigPackage;
+    }
+
+    private GigPackage createAnotherTestGigPackage() {
+        GigPackage gigPackage = new GigPackage();
+        gigPackage.setId(UUID.randomUUID());
+        gigPackage.setGig(testGig);
+        gigPackage.setName("Premium Package");
+        gigPackage.setPrice(new BigDecimal("100.00"));
+        gigPackage.setDeliveryDays(7);
+        gigPackage.setDescription("Premium package description");
+        return gigPackage;
     }
 }
 
