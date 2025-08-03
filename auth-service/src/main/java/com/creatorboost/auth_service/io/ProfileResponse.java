@@ -16,4 +16,5 @@ public class ProfileResponse {
     private String email;
     private UserRole role;
     private boolean isAccountVerified;
+    private String imageUrl;
 }

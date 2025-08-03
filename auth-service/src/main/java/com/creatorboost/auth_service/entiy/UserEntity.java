@@ -29,6 +29,8 @@ public class UserEntity {
     private String password;
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    private String imageUrl;
     private String verifyOtp;
     private boolean isAccountVerified;
     private Instant verifyOtpExpiry;
