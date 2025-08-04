@@ -5,12 +5,23 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
+
+        <option value="$PROJECT_DIR$/gig_service/pom.xml" />
+        <option value="$PROJECT_DIR$/common/target/classes/pom.xml" />
+        <option value="$PROJECT_DIR$/common/target/classes/target/classes/pom.xml" />
+        <option value="$PROJECT_DIR$/notification-service/pom.xml" />
+        <option value="$PROJECT_DIR$/order-booking_service/pom.xml" />
+        <option value="$PROJECT_DIR$/order-booking_service/pom_fixed.xml" />
+        <option value="$PROJECT_DIR$/order_service/pom.xml" />
+
       </list>
     </option>
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/api-request/pom.xml" />
+
         <option value="$PROJECT_DIR$/gig_service/pom.xml" />
+
       </set>
     </option>
   </component>
