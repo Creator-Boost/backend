@@ -143,4 +143,46 @@ public class GigController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    /**
+     * Get gig and specific package details by gigId and packageId
+     * Verifies that both gig and package exist and that the package belongs to the gig
+     */
+    @GetMapping("/{gigId}/packages/{packageId}")
+    public ResponseEntity<GigWithPackageDetailsDTO> getGigWithPackageDetails(
+            @PathVariable UUID gigId,
+            @PathVariable UUID packageId) {
+        try {
+            GigWithPackageDetailsDTO response = gigService.getGigWithPackageDetails(gigId, packageId);
+            return ResponseEntity.ok(response);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Verify if a gig and package combination exists
+     */
+    @GetMapping("/{gigId}/packages/{packageId}/verify")
+    public ResponseEntity<Map<String, Boolean>> verifyGigAndPackageExists(
+            @PathVariable UUID gigId,
+            @PathVariable UUID packageId) {
+        boolean exists = gigService.verifyGigAndPackageExists(gigId, packageId);
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("exists", exists);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all packages for a specific gig
+     */
+    @GetMapping("/{gigId}/packages")
+    public ResponseEntity<List<GigPackageDetailsDTO>> getPackagesByGigId(@PathVariable UUID gigId) {
+        try {
+            List<GigPackageDetailsDTO> packages = gigService.getPackagesByGigId(gigId);
+            return ResponseEntity.ok(packages);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

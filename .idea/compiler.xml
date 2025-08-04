@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="auth-service" />
         <module name="common (1)" />
+        <module name="order_service" />
         <module name="common" />
       </profile>
 
@@ -34,7 +35,9 @@
 
       <module name="order-booking_service" target="17" />
       <module name="order-booking_service (1)" target="17" />
+
       <module name="order_service" target="17" />
+
 
     </bytecodeTargetLevel>
   </component>
