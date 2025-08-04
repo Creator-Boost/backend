@@ -1,9 +1,16 @@
 package com.creatorboost.auth_service.service;
 
+import com.creatorboost.auth_service.entiy.ClientProfile;
+import com.creatorboost.auth_service.entiy.ProviderProfile;
 import com.creatorboost.auth_service.entiy.UserEntity;
+import com.creatorboost.auth_service.io.ClientProfileRequset;
 import com.creatorboost.auth_service.io.ProfileRequest;
 import com.creatorboost.auth_service.io.ProfileResponse;
+import com.creatorboost.auth_service.io.ProviderProfileRequest;
+import com.creatorboost.auth_service.repository.ClientProfileRepository;
+import com.creatorboost.auth_service.repository.ProviderProfileRepository;
 import com.creatorboost.auth_service.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.SecureRandom;
@@ -24,6 +32,9 @@ public class ProfileServiceImpl implements   ProfileService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final KafkaProducerService kafkaProducerService;
+    private final CloudinaryClient cloudinaryClient;
+    private final ProviderProfileRepository providerProfileRepository;
+    private final ClientProfileRepository clientProfileRepository;
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ProfileServiceImpl.class);
 
@@ -153,6 +164,8 @@ public class ProfileServiceImpl implements   ProfileService {
         return existingUser.getUserId();
     }
 
+
+
     private UserEntity convertToUserEntity(ProfileRequest request) {
        return UserEntity.builder()
                .email(request.getEmail())
@@ -176,6 +189,125 @@ public class ProfileServiceImpl implements   ProfileService {
                 .userId(newProfile.getUserId())
                 .role(newProfile.getRole())
                 .isAccountVerified(newProfile.isAccountVerified())
+                .imageUrl(newProfile.getImageUrl())
                 .build();
     }
+
+
+    @Override
+    public String uploadFile(MultipartFile file) {
+        String fileNameExtension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+        String key = UUID.randomUUID().toString() + "." + fileNameExtension;
+
+        try {
+            return cloudinaryClient.uploadFile(file, key);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload file", e);
+        }
+    }
+
+    @Override
+    public boolean deleteFile(String filename) {
+        try {
+            // Assuming CloudinaryClient has a deleteFile method
+            return cloudinaryClient.deleteFile(filename);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete file: " + filename, e);
+        }
+    }
+
+    @Override
+    public ProfileResponse updateProfileImage(String email, MultipartFile image) {
+        UserEntity existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
+
+        if (image == null || image.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image file is required");
+        }
+
+        // Delete old image if exists
+        if (existingUser.getImageUrl() != null) {
+            try {
+                String publicId = extractPublicIdFromUrl(existingUser.getImageUrl());
+                deleteFile(publicId);
+            } catch (Exception e) {
+                logger.error("Failed to delete old image", e);
+                // Continue with upload anyway
+            }
+        }
+
+        // Upload new image
+        try {
+            String imageUrl = uploadFile(image);
+
+            existingUser.setImageUrl(imageUrl);
+            userRepository.save(existingUser);
+            return convertToProfileResponse(existingUser);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload profile image", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateProviderProfile(ProviderProfileRequest profileData, String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        ProviderProfile profile = providerProfileRepository.findById(String.valueOf(user.getId()))
+                .orElseGet(() -> {
+
+                    ProviderProfile newProfile = new ProviderProfile();
+                    newProfile.setUser(user); // Link to UserEntity // or set user directly if using @OneToOne
+                    return newProfile;
+                });
+        // Update profile fields
+        profile.setTitle(profileData.getTitle());
+        profile.setLocation(profileData.getLocation());
+        profile.setLanguages(profileData.getLanguages());
+        profile.setSkills(profileData.getSkills());
+        profile.setDescription(profileData.getDescription());
+        profile.setCertifications(profileData.getCertifications());
+
+        providerProfileRepository.save(profile);
+
+
+    }
+
+    @Override
+    @Transactional
+    public void updateClientProfile(ClientProfileRequset profileData, String email) {
+        logger.info("Updating client profile for email: {}", email);
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        logger.debug("Found user with ID: {}", user.getId());
+        ClientProfile profile = clientProfileRepository.findById(String.valueOf((user.getId())))
+                .orElseGet(() -> {
+                    logger.info("ClientProfile not found for user ID: {}. Creating new one.", user.getId());
+                    ClientProfile newProfile = new ClientProfile();
+                    newProfile.setUser(user); // Link to UserEntity // or set user directly if using @OneToOne
+                    return newProfile;
+                });
+        logger.debug("Updating profile fields. Location: {}, Preferences: {}",
+                profileData.getLocation(), profileData.getPreferences());
+        profile.setLocation(profileData.getLocation());
+        profile.setPreferences(profileData.getPreferences());
+
+        clientProfileRepository.save(profile);
+
+    }
+
+
+
+    private String extractPublicIdFromUrl(String url) {
+        try {
+            // Example URL: https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/abc123.jpg
+            String[] parts = url.split("/");
+            String filenameWithExt = parts[parts.length - 1]; // abc123.jpg
+            return filenameWithExt.substring(0, filenameWithExt.lastIndexOf('.')); // abc123
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to extract public ID from image URL", e);
+        }
+    }
+
+
 }
