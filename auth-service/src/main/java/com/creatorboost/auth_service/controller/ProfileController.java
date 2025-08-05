@@ -73,21 +73,21 @@ public class ProfileController {
     }
 
     @PutMapping("/provider/profile")
-    public ResponseEntity<Void> updateProviderProfile(
+    public ResponseEntity<ProfileResponse> updateProviderProfile(
             @RequestBody ProviderProfileRequest profileData,
             @CurrentSecurityContext(expression = "authentication.name") String email) {
 
-        profileService.updateProviderProfile(profileData,email);
-        return ResponseEntity.ok().build();
+        ProfileResponse updatedProfile = profileService.updateProviderProfile(profileData,email);
+        return ResponseEntity.ok(updatedProfile);
     }
 
     @PutMapping("/client/profile")
-    public ResponseEntity<Void> updateClientProfile(
+    public ResponseEntity<ProfileResponse> updateClientProfile(
             @RequestBody ClientProfileRequset profileData,
             @CurrentSecurityContext(expression = "authentication.name") String email) {
 
-        profileService.updateClientProfile(profileData,email);
-        return ResponseEntity.ok().build();
+        ProfileResponse updatedProfile = profileService.updateClientProfile(profileData,email);
+        return ResponseEntity.ok(updatedProfile);
     }
 
 }

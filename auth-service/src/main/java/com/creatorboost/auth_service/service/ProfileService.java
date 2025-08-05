@@ -21,6 +21,6 @@ public interface ProfileService {
     boolean deleteFile(String filename);
     ProfileResponse updateProfileImage(String email, MultipartFile image);
 
-    void updateProviderProfile(ProviderProfileRequest profileData,String email);
-    void updateClientProfile(ClientProfileRequset profileData,String email);
+    ProfileResponse updateProviderProfile(ProviderProfileRequest profileData,String email);
+    ProfileResponse updateClientProfile(ClientProfileRequset profileData,String email);
 }
