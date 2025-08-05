@@ -1,4 +1,4 @@
-package com.example.gig_service.config;
+package src.main.com.example.gig_service.config;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

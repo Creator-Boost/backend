@@ -1,4 +1,4 @@
-package com.example.gig_service.dto;
+package src.main.com.example.gig_service.dto;
 
 
 import lombok.Getter;

@@ -1,6 +1,6 @@
-package com.example.gig_service.repository;
+package src.main.com.example.gig_service.repository;
 
-import com.example.gig_service.entity.GigPackage;
+import src.main.com.example.gig_service.entity.GigPackage;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

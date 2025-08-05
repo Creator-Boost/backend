@@ -1,11 +1,11 @@
-package com.example.gig_service.service;
+package src.main.com.example.gig_service.service;
 
 import com.example.gig_service.dto.*;
-import com.example.gig_service.entity.Gig;
-import com.example.gig_service.entity.GigFaq;
-import com.example.gig_service.entity.GigImage;
-import com.example.gig_service.entity.GigPackage;
-import com.example.gig_service.repository.GigRepository;
+import src.main.com.example.gig_service.entity.Gig;
+import src.main.com.example.gig_service.entity.GigFaq;
+import src.main.com.example.gig_service.entity.GigImage;
+import src.main.com.example.gig_service.entity.GigPackage;
+import src.main.com.example.gig_service.repository.GigRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,8 +1,8 @@
-package com.example.gig_service.controller;
+package src.main.com.example.gig_service.controller;
 
 import com.example.gig_service.dto.*;
-import com.example.gig_service.service.GigService;
-import com.example.gig_service.service.ImageService;
+import src.main.com.example.gig_service.service.GigService;
+import src.main.com.example.gig_service.service.ImageService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;

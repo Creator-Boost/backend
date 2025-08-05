@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -320,6 +321,39 @@ public class ProfileServiceImpl implements   ProfileService {
 
     }
 
+    @Override
+    public List<ProfileResponse> getAllUsers() {
+        List<UserEntity> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> convertToProfileResponse(user, null, null))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public ProfileResponse getProfileById(String userId) {
+        UserEntity existingUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with ID: " + userId));
+
+        ProviderProfile providerProfile = null;
+        ClientProfile clientProfile = null;
+
+        switch (existingUser.getRole()) {
+            case PROVIDER -> {
+
+                providerProfile = providerProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
+                if (providerProfile != null) {
+                    providerProfile.getLanguages().size();
+                    providerProfile.getSkills().size();
+                    providerProfile.getCertifications().size();
+                }
+            }
+            case CLIENT -> clientProfile = clientProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
+        }
+
+        return convertToProfileResponse(existingUser, providerProfile, clientProfile);
+
+    }
 
 
     private String extractPublicIdFromUrl(String url) {

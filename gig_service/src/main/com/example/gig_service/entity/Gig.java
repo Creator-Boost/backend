@@ -1,4 +1,4 @@
-package com.example.gig_service.entity;
+package src.main.com.example.gig_service.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
