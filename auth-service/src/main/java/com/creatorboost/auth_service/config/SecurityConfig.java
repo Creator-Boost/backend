@@ -1,6 +1,7 @@
 package com.creatorboost.auth_service.config;
 
 import com.creatorboost.auth_service.filter.JwtAuthenticationFilter;
+import com.creatorboost.auth_service.handler.OAuth2LoginSuccessHandler;
 import com.creatorboost.auth_service.service.AppUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,7 @@ public class SecurityConfig {
     private final AppUserDetailsService appUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,7 +46,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(ex-> ex.authenticationEntryPoint(authenticationEntryPoint)) ;
+                .exceptionHandling(ex-> ex.authenticationEntryPoint(authenticationEntryPoint))
+                .oauth2Login(oauth -> oauth
+                        .successHandler(oAuth2LoginSuccessHandler)
+                );
 
         return http.build();
     }
