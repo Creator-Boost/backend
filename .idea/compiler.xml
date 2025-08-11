@@ -12,21 +12,27 @@
         <module name="common (2)" />
         <module name="order_service" />
       </profile>
+
       <profile name="Annotation profile for notification-service" enabled="true">
+
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
+
         <module name="gig_service" />
         <module name="notification-service" />
+
         <module name="chat-service" />
+        <module name="notification-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="api-request" target="21" />
       <module name="auth-service1" target="21" />
+
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -35,7 +41,16 @@
       <module name="chat-service" options="-parameters" />
       <module name="gig_service" options="-parameters" />
       <module name="notification-service" options="-parameters" />
-      <module name="order_service" options="-parameters" />
+       <module name="order-booking_service" target="17" />
+      <module name="order-booking_service (1)" target="17" />
+
+      <module name="order_service" target="17" />
+
+
+      <module name="order-booking_service" options="-parameters" />
+      <module name="order-booking_service (1)" options="-parameters" />
+
+
     </option>
   </component>
 </project>
