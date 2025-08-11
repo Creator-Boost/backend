@@ -11,7 +11,9 @@
         <module name="common (1)" />
         <module name="common (2)" />
         <module name="order_service" />
+
         <module name="common" />
+
       </profile>
       <profile name="Annotation profile for Creator Boost Platform" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -27,8 +29,10 @@
     <bytecodeTargetLevel>
       <module name="api-request" target="21" />
       <module name="auth-service1" target="21" />
+
       <module name="order-booking_service" target="17" />
       <module name="order-booking_service (1)" target="17" />
+
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -37,9 +41,11 @@
       <module name="chat-service" options="-parameters" />
       <module name="gig_service" options="-parameters" />
       <module name="notification-service" options="-parameters" />
+
       <module name="order-booking_service" options="-parameters" />
       <module name="order-booking_service (1)" options="-parameters" />
       <module name="order_service" options="-parameters" />
+
     </option>
   </component>
 </project>
