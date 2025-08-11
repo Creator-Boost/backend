@@ -1,4 +1,5 @@
-package com.creatorboost.auth_service.entiy;
+/*package com.creatorboost.auth_service.entiy;
+
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,23 +9,16 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@Table(name = "client_profiles")
+@Table(name = "user_auth_providers")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ClientProfile {
+public class UserAuthProvider {
     @Id
     private Long userId; // Same as in UserEntity
     @OneToOne
     @MapsId // This tells Hibernate to use userId as both PK and FK
     @JoinColumn(name = "user_id")
     private UserEntity user;
-
-    private String preferences;
-    private String location;
-    @Column(length = 2000)
-    private String description;
-
-
-    // add more client-specific fields
-}
+    private AuthProvider provider;
+}*/

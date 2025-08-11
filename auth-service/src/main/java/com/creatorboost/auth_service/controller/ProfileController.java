@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -31,10 +32,19 @@ public class ProfileController {
         //emailService.sendWelcomeEmail(response.getEmail(), response.getName());
         return response;
     }
+
+
     @GetMapping("/profile")
     public ProfileResponse getProfile(@CurrentSecurityContext(expression = "authentication.name") String email) {
         return profileService.getProfile(email);
     }
+
+    @GetMapping("/profile/{userId}")
+    public ProfileResponse getProfileById(@PathVariable("userId") String userId) {
+        return profileService.getProfileById(userId);
+    }
+
+
     @PostMapping("/reset-password")
     public void resetPassword(@Valid @RequestBody ResetPasswordRequest request){
        try{
@@ -73,21 +83,27 @@ public class ProfileController {
     }
 
     @PutMapping("/provider/profile")
-    public ResponseEntity<Void> updateProviderProfile(
+    public ResponseEntity<ProfileResponse> updateProviderProfile(
             @RequestBody ProviderProfileRequest profileData,
             @CurrentSecurityContext(expression = "authentication.name") String email) {
 
-        profileService.updateProviderProfile(profileData,email);
-        return ResponseEntity.ok().build();
+        ProfileResponse updatedProfile = profileService.updateProviderProfile(profileData,email);
+        return ResponseEntity.ok(updatedProfile);
     }
 
     @PutMapping("/client/profile")
-    public ResponseEntity<Void> updateClientProfile(
+    public ResponseEntity<ProfileResponse> updateClientProfile(
             @RequestBody ClientProfileRequset profileData,
             @CurrentSecurityContext(expression = "authentication.name") String email) {
 
-        profileService.updateClientProfile(profileData,email);
-        return ResponseEntity.ok().build();
+        ProfileResponse updatedProfile = profileService.updateClientProfile(profileData,email);
+        return ResponseEntity.ok(updatedProfile);
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<ProfileResponse>> getAllUsers() {
+        List<ProfileResponse> users = profileService.getAllUsers();
+        return ResponseEntity.ok(users);
     }
 
 }

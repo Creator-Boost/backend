@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -55,17 +56,37 @@ public class ProfileServiceImpl implements   ProfileService {
                 logger.error("❌ Failed to send welcome email notification for user: {}", newProfile.getEmail(), e);
                 // Don't throw exception here as user creation was successful
             }
-            return convertToProfileResponse(newProfile);
+            return convertToProfileResponse(newProfile,null,null);
         }
 
         throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
     }
 
     @Override
+    @Transactional
     public ProfileResponse getProfile(String email) {
         UserEntity existingUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
-        return convertToProfileResponse(existingUser);
+
+        ProviderProfile providerProfile = null;
+        ClientProfile clientProfile = null;
+
+        switch (existingUser.getRole()) {
+            //ProviderProfile profile = providerProfileRepository.findById(String.valueOf(user.getId()))
+            case PROVIDER -> {
+                providerProfile = providerProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
+                // Force initialization of lazy collections within transaction
+                if (providerProfile != null) {
+                    // This will trigger loading of lazy collections
+                    providerProfile.getLanguages().size(); // Force initialization
+                    providerProfile.getSkills().size(); // If skills is also lazy
+                    providerProfile.getCertifications().size(); // If certifications is also lazy
+                }
+            }
+            case CLIENT -> clientProfile = clientProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
+            // Optionally handle ADMIN or others if needed
+        }
+        return convertToProfileResponse(existingUser, providerProfile, clientProfile);
     }
 
     @Override
@@ -182,14 +203,16 @@ public class ProfileServiceImpl implements   ProfileService {
 
 
     }
-    private ProfileResponse convertToProfileResponse(UserEntity newProfile) {
+    private ProfileResponse convertToProfileResponse(UserEntity user, ProviderProfile providerProfile, ClientProfile clientProfile) {
         return ProfileResponse.builder()
-                .name(newProfile.getName())
-                .email(newProfile.getEmail())
-                .userId(newProfile.getUserId())
-                .role(newProfile.getRole())
-                .isAccountVerified(newProfile.isAccountVerified())
-                .imageUrl(newProfile.getImageUrl())
+                .name(user.getName())
+                .email(user.getEmail())
+                .userId(user.getUserId())
+                .role(user.getRole())
+                .isAccountVerified(user.isAccountVerified())
+                .imageUrl(user.getImageUrl())
+                .providerProfile(providerProfile)
+                .clientProfile(clientProfile)
                 .build();
     }
 
@@ -242,7 +265,7 @@ public class ProfileServiceImpl implements   ProfileService {
 
             existingUser.setImageUrl(imageUrl);
             userRepository.save(existingUser);
-            return convertToProfileResponse(existingUser);
+            return convertToProfileResponse(existingUser,null,null);
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload profile image", e);
         }
@@ -250,7 +273,7 @@ public class ProfileServiceImpl implements   ProfileService {
 
     @Override
     @Transactional
-    public void updateProviderProfile(ProviderProfileRequest profileData, String email) {
+    public ProfileResponse updateProviderProfile(ProviderProfileRequest profileData, String email) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         ProviderProfile profile = providerProfileRepository.findById(String.valueOf(user.getId()))
@@ -269,13 +292,13 @@ public class ProfileServiceImpl implements   ProfileService {
         profile.setCertifications(profileData.getCertifications());
 
         providerProfileRepository.save(profile);
-
+        return convertToProfileResponse(user, profile, null);
 
     }
 
     @Override
     @Transactional
-    public void updateClientProfile(ClientProfileRequset profileData, String email) {
+    public ProfileResponse updateClientProfile(ClientProfileRequset profileData, String email) {
         logger.info("Updating client profile for email: {}", email);
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -291,11 +314,46 @@ public class ProfileServiceImpl implements   ProfileService {
                 profileData.getLocation(), profileData.getPreferences());
         profile.setLocation(profileData.getLocation());
         profile.setPreferences(profileData.getPreferences());
+        profile.setDescription(profileData.getDescription());
 
         clientProfileRepository.save(profile);
+        return convertToProfileResponse(user, null, profile);
 
     }
 
+    @Override
+    public List<ProfileResponse> getAllUsers() {
+        List<UserEntity> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> convertToProfileResponse(user, null, null))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public ProfileResponse getProfileById(String userId) {
+        UserEntity existingUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with ID: " + userId));
+
+        ProviderProfile providerProfile = null;
+        ClientProfile clientProfile = null;
+
+        switch (existingUser.getRole()) {
+            case PROVIDER -> {
+
+                providerProfile = providerProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
+                if (providerProfile != null) {
+                    providerProfile.getLanguages().size();
+                    providerProfile.getSkills().size();
+                    providerProfile.getCertifications().size();
+                }
+            }
+            case CLIENT -> clientProfile = clientProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
+        }
+
+        return convertToProfileResponse(existingUser, providerProfile, clientProfile);
+
+    }
 
 
     private String extractPublicIdFromUrl(String url) {
