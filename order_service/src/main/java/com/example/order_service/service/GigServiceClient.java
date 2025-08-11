@@ -67,7 +67,7 @@ public class GigServiceClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${gig.service.url:http://gig_service:8080}")
+    @Value("${gig.service.url:http://gigservice:8084}")
     private String gigServiceBaseUrl;
 
     public GigServiceClient() {
