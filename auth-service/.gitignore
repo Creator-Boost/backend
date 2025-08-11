@@ -36,3 +36,4 @@ build/
 
 # Ignore application.properties to avoid committing secrets
 **/application.properties
+auth-service/src/main/resources/application.properties
