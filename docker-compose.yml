@@ -1,0 +1,221 @@
+#version: '3.8'
+#
+#services:
+#  gig_service:
+#    build:
+#      context: ./gig_service
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.wjrgopbrrgctpmrosfkr.supabase.co:5432/postgres
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+#      - SPRING_JPA_DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+#
+#  order_service:
+#    build:
+#      context: ./order_service
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8081:8081"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.wjrgopbrrgctpmrosfkr.supabase.co:5432/postgres
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+#      - SPRING_JPA_DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+
+
+#version: '3.8'
+#
+#services:
+#  gig_service:
+#    build:
+#      context: ./gig_service
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.wjrgopbrrgctpmrosfkr.supabase.co:5432/postgres?sslmode=require
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+#      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+#      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=gigDb
+#
+#  order_service:
+#    build:
+#      context: ./order_service
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8081:8081"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.wjrgopbrrgctpmrosfkr.supabase.co:5432/postgres?sslmode=require
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+#      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+#      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=orderDb
+
+#version: '3.8'
+#
+#services:
+#  db:
+#    image: postgres:15
+#    container_name: postgres_db
+#    restart: always
+#    environment:
+#      POSTGRES_DB: postgres
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: Rs2maxrs* # Change if you want
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#
+#  gig_service:
+#    build:
+#      context: ./gig_service
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/postgres
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+#      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+#      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=gigDb
+#
+#  order_service:
+#    build:
+#      context: ./order_service
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8081:8081"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/postgres
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+#      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+#      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=orderDb
+#
+#volumes:
+#  postgres_data:
+
+
+#version: '3.8'
+#
+#services:
+#  db:
+#    image: postgres:15
+#    container_name: postgres_db
+#    restart: always
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: Rs2maxrs*
+#      POSTGRES_DB: postgres
+#    ports:
+#      - "5433:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#      - ./db-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+#
+#  gig_service:
+#    build:
+#      context: ./gig_service
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - db  # This ensures gig_service waits for db
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/gigDb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+#      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+#
+#  order_service:
+#    build:
+#      context: ./order_service
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8081:8081"
+#    depends_on:
+#      - db  # This ensures order_service waits for db
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/orderDb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+#      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+#      - gig.service.url=http://gig_service:8080
+#
+#volumes:
+#  postgres_data:
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Rs2maxrs*
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - my_network
+
+  gigservice:  # Renamed from gig_service
+    build:
+      context: ./gig_service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/gigDb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+    networks:
+      - my_network
+
+  orderservice:
+    build:
+      context: ./order_service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/orderDb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+      - gig.service.url=http://gigservice:8080  # Updated for new service name
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
