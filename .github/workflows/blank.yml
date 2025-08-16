@@ -52,7 +52,7 @@ jobs:
 
       # Build + run tests
       - name: Build with Maven
-        run: mvn clean verify
+        run: mvn -f backend/pom.xml clean verify
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
