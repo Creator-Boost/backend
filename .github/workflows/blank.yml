@@ -42,20 +42,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
             
-      # Optional debug - List backend folder to verify structure
-      - name: List backend folder
-        run: ls -la backend/
+      # Optional debug - List current directory to verify structure
+      - name: List current directory
+        run: ls -la ./
         
       # Build and test individual service
       - name: Build and Test ${{ matrix.service }}
-        run: mvn -f backend/${{ matrix.service }}/pom.xml clean verify
+        run: mvn -f ${{ matrix.service }}/pom.xml clean verify
         
       # Build and test all services together (if you have a parent pom)
       - name: Build and Test All Services
-        working-directory: backend
         run: mvn clean verify
         
-      # Alternative: Build with parent pom if it exists
+      # Alternative: Build with parent pom if it exists in root
       - name: Build with Maven (parent pom)
-        if: hashFiles('backend/pom.xml') != ''
-        run: mvn -f backend/pom.xml clean verify
+        if: hashFiles('pom.xml') != ''
+        run: mvn -f pom.xml clean verify
