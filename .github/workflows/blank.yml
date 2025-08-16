@@ -24,6 +24,10 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        service: ["auth_service", "chat_service", "notification_service"]
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -49,6 +53,17 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
+      - name: Build and Test ${{ matrix.service }}
+        run: mvn -f backend/${{ matrix.service }}/pom.xml clean verify
+
+        # Optional debug
+      - name: List backend folder
+        run: ls -R backend
+
+      - name: Build and Test All Services
+        working-directory: backend
+        run: mvn clean verify
 
       # Build + run tests
       - name: Build with Maven
