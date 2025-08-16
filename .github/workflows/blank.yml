@@ -1,7 +1,5 @@
 # This is a basic workflow to help you get started with Actions
-
 name: CI
-
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
@@ -9,13 +7,8 @@ on:
     branches: [ "main", "development" ]
   pull_request:
     branches: [ "main", "development" ]
-
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
-
-
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -23,29 +16,24 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        service: ["auth_service", "chat_service", "notification_service"]
-
+        service: ["auth-service", "chat-service", "notification-service"]
+    
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout repository
         uses: actions/checkout@v4
-
-        # Set up JDK (Java 17, change if needed)
+        
+      # Set up JDK (Java 17, change if needed)
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-        # Cache Maven dependencies to speed up builds
+          
+      # Cache Maven dependencies to speed up builds
       - name: Cache Maven packages
         uses: actions/cache@v3
         with:
@@ -53,24 +41,21 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
+            
+      # Optional debug - List backend folder to verify structure
+      - name: List backend folder
+        run: ls -la backend/
+        
+      # Build and test individual service
       - name: Build and Test ${{ matrix.service }}
         run: mvn -f backend/${{ matrix.service }}/pom.xml clean verify
-
-        # Optional debug
-      - name: List backend folder
-        run: ls -R backend
-
+        
+      # Build and test all services together (if you have a parent pom)
       - name: Build and Test All Services
         working-directory: backend
         run: mvn clean verify
-
-      # Build + run tests
-      - name: Build with Maven
+        
+      # Alternative: Build with parent pom if it exists
+      - name: Build with Maven (parent pom)
+        if: hashFiles('backend/pom.xml') != ''
         run: mvn -f backend/pom.xml clean verify
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
