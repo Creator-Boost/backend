@@ -1,0 +1,8 @@
+setup.py
+CreatorBoost_ChatBot.egg-info/PKG-INFO
+CreatorBoost_ChatBot.egg-info/SOURCES.txt
+CreatorBoost_ChatBot.egg-info/dependency_links.txt
+CreatorBoost_ChatBot.egg-info/top_level.txt
+src/__init__.py
+src/helper.py
+src/prompt.py
