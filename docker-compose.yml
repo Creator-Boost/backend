@@ -182,7 +182,7 @@ services:
       context: ./gig_service
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8084:8084"
     depends_on:
       - db
     environment:
@@ -199,7 +199,7 @@ services:
       context: ./order_service
       dockerfile: Dockerfile
     ports:
-      - "8081:8081"
+      - "8085:8085"
     depends_on:
       - db
     environment:
@@ -208,7 +208,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=Rs2maxrs*
       - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
-      - gig.service.url=http://gigservice:8080  # Updated for new service name
+      - gig.service.url=http://gigservice:8084  # Updated for new service name
     networks:
       - my_network
 
