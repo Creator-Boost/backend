@@ -4,7 +4,9 @@ import com.creatorboost.chat_service.entity.ChatRoom;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface ChatRoomRepository extends MongoRepository<ChatRoom, String> {
     Optional<ChatRoom> findBySenderIdAndRecipientId(String senderId, String recipientId);
+    List<ChatRoom> findBySenderId(String senderId);
 }

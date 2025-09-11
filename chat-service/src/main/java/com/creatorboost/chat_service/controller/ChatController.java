@@ -1,5 +1,6 @@
 package com.creatorboost.chat_service.controller;
 
+import com.creatorboost.chat_service.dto.ConversationDTO;
 import com.creatorboost.chat_service.entity.ChatMessage;
 import com.creatorboost.chat_service.entity.ChatNotification;
 import com.creatorboost.chat_service.service.ChatMessageService;
@@ -40,5 +41,10 @@ public class ChatController {
                                                               @PathVariable String recipientId) {
         return ResponseEntity
                 .ok(chatMessageService.findChatMessages(senderId, recipientId));
+    }
+
+    @GetMapping("/conversations/{userId}")
+    public ResponseEntity<List<ConversationDTO>> getUserConversations(@PathVariable String userId) {
+        return ResponseEntity.ok(chatMessageService.getUserConversations(userId));
     }
 }
