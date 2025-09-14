@@ -11,6 +11,7 @@ import com.stripe.param.checkout.SessionCreateParams;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import java.util.Map;
 @Service
 public class stripeService {
     @Value("${stripe.secretKey:${STRIPE_SECRET_KEY:}}")
@@ -33,15 +34,16 @@ public class stripeService {
                     .build();
         }
         
-        // Validate Stripe secret key
-        if (!StringUtils.hasText(secretKey)) {
+        // Get Stripe secret key from environment variable
+        String stripeKey = System.getenv("STRIPE_SECRET_KEY");
+        if (!StringUtils.hasText(stripeKey)) {
             return StripeResponse.builder()
                     .status("error")
                     .message("Stripe secret key not configured. Please set STRIPE_SECRET_KEY environment variable.")
                     .build();
         }
         
-        Stripe.apiKey=secretKey;
+        Stripe.apiKey = stripeKey;
 
         SessionCreateParams.LineItem.PriceData.ProductData productData = SessionCreateParams.LineItem.PriceData.ProductData.builder()
                 .setName(productRequest.getName()).build();
