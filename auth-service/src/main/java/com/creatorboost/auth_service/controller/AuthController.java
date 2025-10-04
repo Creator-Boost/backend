@@ -1,7 +1,9 @@
 package com.creatorboost.auth_service.controller;
 
+import com.creatorboost.auth_service.entiy.UserEntity;
 import com.creatorboost.auth_service.io.AuthRequest;
 import com.creatorboost.auth_service.io.AuthResponse;
+import com.creatorboost.auth_service.repository.UserRepository;
 import com.creatorboost.auth_service.service.AppUserDetailsService;
 import com.creatorboost.auth_service.service.ProfileService;
 import com.creatorboost.auth_service.util.JwtUtil;
@@ -32,18 +34,24 @@ public class AuthController {
     private final AppUserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
     private final ProfileService profileService;
+    private final UserRepository userRepository;
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request){
         try {
             authenticate(request.getEmail(), request.getPassword());
             final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-            final  String jwt = jwtUtil.generateToken(userDetails);
+            // Fetch user entity to get role
+            UserEntity userEntity = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            String jwt = jwtUtil.generateToken(userDetails, userEntity.getRole().name());
             ResponseCookie cookie = ResponseCookie.from("jwt", jwt)
                     .httpOnly(true)
                     .path("/")
                     .maxAge(60 * 60 * 10) // 10 hours
                     .sameSite("Strict")
+                    //.sameSite("None") // For cross-site requests, ensure to use Secure flag in production
                     .build();
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())

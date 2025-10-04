@@ -11,7 +11,7 @@ public class WebClientConfig {
     public WebClient webClient(WebClient.Builder builder) {
         // You can set a base URL for auth-service if you want
         return builder
-                //.baseUrl("http://auth-service")
+                .baseUrl("http://localhost:8080")
                 .build();
     }
 }

@@ -9,6 +9,7 @@ import com.creatorboost.chat_service.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,17 +39,23 @@ public class ChatMessageService {
         return chatId.map(repository::findByChatId).orElse(new ArrayList<>());
     }
 
-    private UserSummaryDTO getUserProfile(String userId) {
-        return userCache.computeIfAbsent(userId, id ->
-                webClient.get()
-                        .uri("http://localhost:8081/api/v1/profile/" + id)
+    private UserSummaryDTO getUserProfile(String userId,String token) {
+        //System.out.println("JWT forwarded to WebClient (Service): " + token);
+        return userCache.computeIfAbsent(userId, id -> {
+            try {
+                return webClient.get()
+                        .uri("/api/auth/profile/{id}", id)
+                        .header("Authorization", "Bearer " + token)
                         .retrieve()
                         .bodyToMono(UserSummaryDTO.class)
-                        .block()
-        );
+                        .block();
+            } catch (WebClientResponseException e) {
+                throw new RuntimeException("Failed to fetch profile for user " + id, e);
+            }
+        });
     }
 
-    public List<ConversationDTO> getUserConversations(String userId) {
+    public List<ConversationDTO> getUserConversations(String userId,String token) {
         var chatRooms = chatRoomService.getChatRoomsForUser(userId);
         List<ConversationDTO> conversations = new ArrayList<>();
 
@@ -58,7 +65,7 @@ public class ChatMessageService {
                 ChatMessage lastMessage = messages.get(messages.size() - 1);
                 // Determine the other participant
                 String participantId = room.getSenderId().equals(userId) ? room.getRecipientId() : room.getSenderId();
-                UserSummaryDTO profile = getUserProfile(participantId);
+                UserSummaryDTO profile = getUserProfile(participantId, token);
 
                 conversations.add(new ConversationDTO(
                         room.getId(),

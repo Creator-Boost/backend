@@ -56,32 +56,33 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         logger.info("Authenticated OAuth2 user: email={}, name={}, imageUrl={}", email, name, imageUrl);
 
         // Check if user exists
-        Optional<UserEntity> optionalUser = userRepository.findByEmail(email);
+        // Check if user exists
+        String finalName = name;
+        String finalEmail = email;
+        String finalImageUrl = imageUrl;
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    // Create new user
+                    UserEntity newUser = UserEntity.builder()
+                            .userId(UUID.randomUUID().toString())
+                            .email(finalEmail)
+                            .name(finalName)
+                            .imageUrl(finalImageUrl)
+                            .role(UserRole.CLIENT) // Default role
+                            .password("") // No password for OAuth2
+                            .isAccountVerified(true)
+                            .createdAt(Instant.now())
+                            .build();
+                    userRepository.save(newUser);
+                    logger.info("New OAuth2 user created: {}", finalEmail);
+                    return newUser;
+                });
 
-        if (optionalUser.isEmpty()) {
-            // Create new user
-            UserEntity newUser = UserEntity.builder()
-                    .userId(UUID.randomUUID().toString())
-                    .email(email)
-                    .name(name)
-                    .imageUrl(imageUrl)
-                    .role(UserRole.CLIENT) // Default role
-                    .password("") // No password for OAuth2
-                    .isAccountVerified(true)
-                    .createdAt(Instant.now())
-                    .build();
-
-            userRepository.save(newUser);
-            logger.info("New OAuth2 user created: {}", email);
-        } else {
-            logger.info("User already exists: {}", email);
-        }
-
-        // Load userDetails using your UserDetailsService
+        // Load UserDetails
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-        // Generate JWT token
-        String jwt = jwtUtil.generateToken(userDetails);
+        // Generate JWT including role
+        String jwt = jwtUtil.generateToken(userDetails, userEntity.getRole().name());
 
         // Add JWT as HttpOnly cookie
         Cookie cookie = new Cookie("jwt", jwt);

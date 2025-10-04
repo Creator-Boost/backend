@@ -10,6 +10,8 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -17,6 +19,7 @@ import java.util.List;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/user");
@@ -27,16 +30,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
                 // FIXED: Specify exact origins instead of wildcard
-                .setAllowedOrigins(
-                        "http://localhost:5500",
-                        "http://127.0.0.1:5500",
-                        "http://localhost:3000", // For React apps
-                        "http://localhost:8080",  // For other dev servers
-                        "http://localhost:5173" // For Vite dev server
-                )
-                .setAllowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*") // Allow any port on localhost
+                //.setAllowedOriginPatterns("http://localhost:5173")
                 .withSockJS();
+
     }
 
     @Override
