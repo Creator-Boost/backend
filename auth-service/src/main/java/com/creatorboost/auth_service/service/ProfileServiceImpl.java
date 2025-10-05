@@ -213,6 +213,7 @@ public class ProfileServiceImpl implements   ProfileService {
                 .imageUrl(user.getImageUrl())
                 .providerProfile(providerProfile)
                 .clientProfile(clientProfile)
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 

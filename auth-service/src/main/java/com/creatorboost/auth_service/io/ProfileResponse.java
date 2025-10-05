@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,5 +23,8 @@ public class ProfileResponse {
     private String imageUrl;
     private ProviderProfile providerProfile;
     private ClientProfile clientProfile;
+
+    private Instant createdAt;
+
 }
 

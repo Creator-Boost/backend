@@ -55,7 +55,7 @@ public class AuthController {
                     .build();
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                    .body(new AuthResponse(userDetails.getUsername(), jwt));
+                    .body(new AuthResponse(userDetails.getUsername(), jwt, userEntity.getRole().name()));
 
         }catch (BadCredentialsException ex){
             Map<String,Object> map = new HashMap<>();
