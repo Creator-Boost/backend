@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: API-Gateway
+
+
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              "[/**]":
+                allowedOrigins: "http://localhost:5173"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
+
+          routes:
+            - id: auth-service
+              uri: lb://auth-service
+              predicates:
+                - Path=/api/auth/**
+              filters:
+                - StripPrefix=2
+
+
+            - id: chat-service
+              uri: lb://chat-service
+              predicates:
+                - Path=/api/chat/**
+              filters:
+                - StripPrefix=2
+
+
+            - id: notification-service
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/notifications/**
+
+server :
+  port: 8080
+
+jwt:
+  secret:
+    key: yoursecretkeyhereforjwttokengenerationandvalidation

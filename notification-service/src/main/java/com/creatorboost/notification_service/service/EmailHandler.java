@@ -6,4 +6,3 @@ public interface EmailHandler {
     boolean canHandle(EmailMessageDto message);
     void handle(EmailMessageDto message, EmailService emailService);
 }
-

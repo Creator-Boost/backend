@@ -5,6 +5,7 @@ import com.creatorboost.chat_service.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -52,5 +53,9 @@ public class ChatRoomService {
         chatRoomRepository.save(recipientSender);
 
         return chatId;
+    }
+
+    public List<ChatRoom> getChatRoomsForUser(String userId) {
+        return chatRoomRepository.findBySenderId(userId);
     }
 }

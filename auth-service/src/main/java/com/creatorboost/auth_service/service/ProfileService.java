@@ -8,6 +8,8 @@ import com.creatorboost.auth_service.io.ProfileResponse;
 import com.creatorboost.auth_service.io.ProviderProfileRequest;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 public interface ProfileService {
     ProfileResponse createProfile(ProfileRequest request);
     ProfileResponse getProfile(String email);
@@ -21,6 +23,10 @@ public interface ProfileService {
     boolean deleteFile(String filename);
     ProfileResponse updateProfileImage(String email, MultipartFile image);
 
-    void updateProviderProfile(ProviderProfileRequest profileData,String email);
-    void updateClientProfile(ClientProfileRequset profileData,String email);
+    ProfileResponse updateProviderProfile(ProviderProfileRequest profileData,String email);
+    ProfileResponse updateClientProfile(ClientProfileRequset profileData,String email);
+
+    List<ProfileResponse> getAllUsers();
+
+    ProfileResponse getProfileById(String userId);
 }

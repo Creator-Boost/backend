@@ -11,4 +11,5 @@ public class ClientProfileRequset {
 
     private String location;
     private String preferences;
+    private String description;
 }

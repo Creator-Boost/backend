@@ -1,6 +1,6 @@
 package com.creatorboost.auth_service.service;
 
-import dto.EmailMessageDto;
+import com.creatorboost.auth_service.io.EmailMessageDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

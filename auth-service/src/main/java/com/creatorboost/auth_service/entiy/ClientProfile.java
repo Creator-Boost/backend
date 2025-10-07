@@ -22,6 +22,8 @@ public class ClientProfile {
 
     private String preferences;
     private String location;
+    @Column(length = 2000)
+    private String description;
 
 
     // add more client-specific fields

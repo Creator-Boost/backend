@@ -3,10 +3,105 @@
   <component name="CopilotDiffPersistence">
     <option name="pendingDiffs">
       <map>
+        <entry key="$PROJECT_DIR$/api-gateway/Dockerfile">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/api-gateway/Dockerfile" />
+              <option name="updatedContent" value="# ---- Build Stage ----&#10;FROM eclipse-temurin:17-jre&#10;WORKDIR /app&#10;COPY --from=build /app/target/*.jar app.jar&#10;EXPOSE 8080&#10;ENTRYPOINT [&quot;java&quot;, &quot;-jar&quot;, &quot;app.jar&quot;]" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/api-gateway/src/main/resources/application-docker.yml">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/api-gateway/src/main/resources/application-docker.yml" />
+              <option name="updatedContent" value="spring:&#10;            cors-configurations:&#10;              &quot;[/**]&quot;:&#10;                allowedOrigins: &quot;http://localhost:5173&quot;&#10;                allowedMethods:&#10;                  - GET&#10;                  - POST&#10;                  - PUT&#10;                  - DELETE&#10;                allowedHeaders:&#10;                  - &quot;*&quot;&#10;                allowCredentials: true&#10;&#10;          routes:&#10;            - id: auth-service&#10;              uri: lb://auth-service&#10;              predicates:&#10;                - Path=/api/auth/**&#10;              filters:&#10;                - StripPrefix=2&#10;&#10;            - id: chat-service&#10;              uri: lb://chat-service&#10;              predicates:&#10;                - Path=/api/chat/**&#10;              filters:&#10;                - StripPrefix=2&#10;&#10;            - id: notification-service&#10;              uri: lb://notification-service&#10;              predicates:&#10;                - Path=/api/notifications/**&#10;&#10;            - id: gig-service&#10;              uri: lb://gig-service&#10;              predicates:&#10;                - Path=/api/gigs/**&#10;              filters:&#10;                - StripPrefix=2&#10;&#10;            - id: order-service&#10;              uri: lb://order-service&#10;              predicates:&#10;                - Path=/api/orders/**&#10;              filters:&#10;                - StripPrefix=2&#10;&#10;server:&#10;  port: 8080&#10;&#10;jwt:&#10;  secret:&#10;    key: yoursecretkeyhereforjwttokengenerationandvalidation&#10;&#10;eureka:&#10;  client:&#10;    service-url:&#10;      defaultZone: http://discovery-server:8761/eureka/" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/auth-service/src/main/resources/application-docker.properties">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/auth-service/src/main/resources/application-docker.properties" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/auth-service/src/test/resources/application.properties">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/auth-service/src/test/resources/application.properties" />
+              <option name="updatedContent" value="# Test configuration - no external dependencies&#10;spring.jpa.hibernate.ddl-auto=create-drop&#10;spring.jpa.database-platform=org.hibernate.dialect.H2Dialect&#10;&#10;# Disable Eureka for tests&#10;eureka.client.enabled=false&#10;&#10;# Disable Kafka for tests&#10;spring.kafka.producer.bootstrap-servers=&#10;spring.kafka.consumer.bootstrap-servers=&#10;&#10;# JWT Secret&#10;jwt.secret.key=yoursecretkeyhereforjwttokengenerationandvalidation&#10;&#10;# Disable mail for tests&#10;spring.mail.host=&#10;&#10;# Client URL&#10;client.url=http://localhost:5173" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/chat-service/src/main/resources/application-docker.yml">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/chat-service/src/main/resources/application-docker.yml" />
+              <option name="updatedContent" value="spring:&#10;&#10;server:&#10;  port: 8085&#10;&#10;eureka:&#10;  client:&#10;    service-url:&#10;      defaultZone: http://discovery-server:8761/eureka/&#10;&#10;logging:&#10;  level:&#10;    org.springframework.web.socket: DEBUG" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/chat-service/src/test/resources/application.yml">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/chat-service/src/test/resources/application.yml" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/discovery-server/Dockerfile">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/discovery-server/Dockerfile" />
+              <option name="updatedContent" value="# ---- Build Stage ----&#10;FROM eclipse-temurin:17-jre&#10;WORKDIR /app&#10;COPY --from=build /app/target/*.jar app.jar&#10;EXPOSE 8761&#10;ENTRYPOINT [&quot;java&quot;, &quot;-jar&quot;, &quot;app.jar&quot;]" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/discovery-server/src/test/resources/application.properties">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/discovery-server/src/test/resources/application.properties" />
+              <option name="updatedContent" value="spring.application.name=discovery-server&#10;eureka.client.fetch-registry=false" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/gig_service/src/main/java/com/example/gig_service/config/CorsConfig.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/gig_service/src/main/java/com/example/gig_service/config/CorsConfig.java" />
+              <option name="originalContent" value="package com.example.gig_service.config;&#10;&#10;import org.springframework.context.annotation.Bean;&#10;import org.springframework.context.annotation.Configuration;&#10;import org.springframework.web.cors.CorsConfiguration;&#10;import org.springframework.web.cors.CorsConfigurationSource;&#10;import org.springframework.web.cors.UrlBasedCorsConfigurationSource;&#10;import org.springframework.web.servlet.config.annotation.CorsRegistry;&#10;import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;&#10;&#10;@Configuration&#10;public class CorsConfig implements WebMvcConfigurer {&#10;&#10;    @Override&#10;    public void addCorsMappings(CorsRegistry registry) {&#10;        registry.addMapping(&quot;/**&quot;)&#10;                .allowedOrigins(&quot;http://localhost:5173&quot;, &quot;http://localhost:3000&quot;, &quot;http://localhost:8080&quot;)&#10;                .allowedMethods(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;OPTIONS&quot;, &quot;PATCH&quot;)&#10;                .allowedHeaders(&quot;*&quot;)&#10;                .allowCredentials(true)&#10;                .maxAge(3600);&#10;    }&#10;&#10;    @Bean&#10;    public CorsConfigurationSource corsConfigurationSource() {&#10;        CorsConfiguration configuration = new CorsConfiguration();&#10;        configuration.addAllowedOrigin(&quot;http://localhost:5173&quot;);&#10;        configuration.addAllowedOrigin(&quot;http://localhost:3000&quot;);&#10;        configuration.addAllowedOrigin(&quot;http://localhost:8080&quot;);&#10;        configuration.addAllowedMethod(&quot;*&quot;);&#10;        configuration.addAllowedHeader(&quot;*&quot;);&#10;        configuration.setAllowCredentials(true);&#10;        &#10;        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();&#10;        source.registerCorsConfiguration(&quot;/**&quot;, configuration);&#10;        return source;&#10;    }&#10;}" />
+              <option name="updatedContent" value="package com.example.gig_service.config;&#10;&#10;import org.springframework.context.annotation.Bean;&#10;import org.springframework.context.annotation.Configuration;&#10;import org.springframework.web.cors.CorsConfiguration;&#10;import org.springframework.web.cors.CorsConfigurationSource;&#10;import org.springframework.web.cors.UrlBasedCorsConfigurationSource;&#10;import org.springframework.web.servlet.config.annotation.CorsRegistry;&#10;import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;&#10;&#10;@Configuration&#10;public class CorsConfig implements WebMvcConfigurer {&#10;&#10;    @Override&#10;    public void addCorsMappings(CorsRegistry registry) {&#10;        registry.addMapping(&quot;/**&quot;)&#10;                .allowedOrigins(&quot;http://localhost:5173&quot;, &quot;http://localhost:3000&quot;, &quot;http://localhost:8080&quot;)&#10;                .allowedMethods(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;OPTIONS&quot;, &quot;PATCH&quot;)&#10;                .allowedHeaders(&quot;*&quot;)&#10;                .allowCredentials(true)&#10;                .maxAge(3600);&#10;    }&#10;&#10;    @Bean&#10;    public CorsConfigurationSource corsConfigurationSource() {&#10;        CorsConfiguration configuration = new CorsConfiguration();&#10;        configuration.addAllowedOrigin(&quot;http://localhost:5173&quot;);&#10;        configuration.addAllowedOrigin(&quot;http://localhost:3000&quot;);&#10;        configuration.addAllowedOrigin(&quot;http://localhost:8080&quot;);&#10;        configuration.addAllowedMethod(&quot;*&quot;);&#10;        configuration.addAllowedHeader(&quot;*&quot;);&#10;        configuration.setAllowCredentials(true);&#10;        &#10;        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();&#10;        source.registerCorsConfiguration(&quot;/**&quot;, configuration);&#10;        return source;&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/gig_service/src/test/java/com/example/gig_service/service/GigServiceIntegrationTest.java">
           <value>
             <PendingDiffInfo>
               <option name="filePath" value="$PROJECT_DIR$/gig_service/src/test/java/com/example/gig_service/service/GigServiceIntegrationTest.java" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/notification-service/src/main/java/com/creatorboost/notification_service/service/EmailHandler.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/notification-service/src/main/java/com/creatorboost/notification_service/service/EmailHandler.java" />
+              <option name="originalContent" value="package com.creatorboost.notification_service.service;&#10;&#10;import dto.EmailMessageDto;&#10;&#10;public interface EmailHandler {&#10;    boolean canHandle(EmailMessageDto message);&#10;    void handle(EmailMessageDto message, EmailService emailService);&#10;}&#10;&#10;" />
+              <option name="updatedContent" value="package com.creatorboost.notification_service.service;&#10;&#10;import dto.EmailMessageDto;&#10;&#10;public interface EmailHandler {&#10;    boolean canHandle(EmailMessageDto message);&#10;    void handle(EmailMessageDto message, EmailService emailService);&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/notification-service/src/main/resources/application-docker.properties">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/notification-service/src/main/resources/application-docker.properties" />
+              <option name="updatedContent" value="spring.application.name=notification-service&#10;spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer&#10;spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.ErrorHandlingDeserializer&#10;spring.kafka.consumer.properties.spring.deserializer.value.delegate.class=org.springframework.kafka.support.serializer.JsonDeserializer&#10;spring.kafka.consumer.properties.spring.json.trusted.packages=*&#10;spring.kafka.template.default-topic=email_default_topic&#10;&#10;# Server configuration&#10;server.port=8083&#10;&#10;# Mail configuration&#10;spring.mail.host=smtp.gmail.com&#10;spring.mail.port=587&#10;spring.mail.username=chamindusathsara28@gmail.com&#10;spring.mail.password=qgze wrra xhtb nqji&#10;spring.mail.properties.mail.smtp.auth=true&#10;spring.mail.properties.mail.smtp.starttls.enable=true&#10;spring.mail.protocol=smtp&#10;spring.mail.properties.mail.smtp.from=chamindusathsara28@gmail.com&#10;&#10;# Eureka configuration for Docker&#10;eureka.client.service-url.defaultZone=http://discovery-server:8761/eureka&#10;&#10;# Context path&#10;server.servlet.context-path=/notifications" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/notification-service/src/test/resources/application.properties">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/notification-service/src/test/resources/application.properties" />
             </PendingDiffInfo>
           </value>
         </entry>

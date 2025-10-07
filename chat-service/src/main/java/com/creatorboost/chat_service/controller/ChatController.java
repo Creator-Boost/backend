@@ -1,5 +1,6 @@
 package com.creatorboost.chat_service.controller;
 
+import com.creatorboost.chat_service.dto.ConversationDTO;
 import com.creatorboost.chat_service.entity.ChatMessage;
 import com.creatorboost.chat_service.entity.ChatNotification;
 import com.creatorboost.chat_service.service.ChatMessageService;
@@ -9,8 +10,10 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
@@ -40,5 +43,13 @@ public class ChatController {
                                                               @PathVariable String recipientId) {
         return ResponseEntity
                 .ok(chatMessageService.findChatMessages(senderId, recipientId));
+    }
+
+    @GetMapping("/conversations/{userId}")
+    public ResponseEntity<List<ConversationDTO>> getUserConversations(
+            @PathVariable String userId,
+            @CookieValue(value = "jwt") String token) {
+        //System.out.println("JWT from cookie (Controller): " + token);
+        return ResponseEntity.ok(chatMessageService.getUserConversations(userId, token));
     }
 }
