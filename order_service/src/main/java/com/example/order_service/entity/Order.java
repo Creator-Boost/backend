@@ -29,7 +29,7 @@ public class Order {
     private BigDecimal amount;
     private String packageName;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String requirements;
 
     @Enumerated(EnumType.STRING)
@@ -38,7 +38,7 @@ public class Order {
     private LocalDateTime orderDate;
     private LocalDateTime deliveryDate;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String deliveredFiles; // URLs of the files delivered by the seller
 
     // JPA Relationships

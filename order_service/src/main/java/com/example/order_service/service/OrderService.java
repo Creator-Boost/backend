@@ -9,11 +9,16 @@ import com.example.order_service.repository.PaymentRepository;
 import com.example.order_service.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class OrderService {
 
     @Autowired
@@ -27,6 +32,9 @@ public class OrderService {
 
     @Autowired
     private GigServiceClient gigServiceClient;
+
+    @Autowired
+    private FileUploadService fileUploadService;
 
     // Create a new order
     public OrderResponseDTO createOrder(OrderRequestDTO orderDTO) {
@@ -135,6 +143,107 @@ public class OrderService {
 
         // Step 7: Return order response with additional gig details
         return mapToOrderResponseDTOWithGigDetails(savedOrder, gigDetails);
+    }
+
+    // Get order by ID
+    public Order getOrderById(UUID orderId) {
+        return orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderId));
+    }
+
+    // Update order status
+    public Order updateOrderStatus(UUID orderId, UpdateStatusRequest request) {
+        Order order = getOrderById(orderId);
+
+        // Add validation logic for status transitions if needed
+        validateStatusTransition(order.getStatus(), request.getStatus());
+
+        order.setStatus(request.getStatus());
+        return orderRepository.save(order);
+    }
+
+    // Get all orders
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    // Get orders by buyer ID
+    public List<Order> getOrdersByBuyer(UUID buyerId) {
+        return orderRepository.findByBuyerId(buyerId);
+    }
+
+    // Get orders by seller ID
+    public List<Order> getOrdersBySeller(UUID sellerId) {
+        return orderRepository.findBySellerId(sellerId);
+    }
+
+    // Add delivery files
+    public Order addDeliveryFiles(UUID orderId, List<MultipartFile> files) {
+        Order order = getOrderById(orderId);
+
+        // Only seller can add delivery files
+        // Additional validation can be added here based on authentication context
+
+        // Upload files and get URLs
+        List<String> fileUrls = fileUploadService.uploadFiles(files);
+
+        // Store file URLs in the order (assuming comma-separated format)
+        String existingFiles = order.getDeliveredFiles();
+        String newFiles = String.join(",", fileUrls);
+
+        if (existingFiles != null && !existingFiles.isEmpty()) {
+            order.setDeliveredFiles(existingFiles + "," + newFiles);
+        } else {
+            order.setDeliveredFiles(newFiles);
+        }
+
+        // Update status to delivered if not already
+        if (order.getStatus() != Order.OrderStatus.DELIVERED && order.getStatus() != Order.OrderStatus.COMPLETED) {
+            order.setStatus(Order.OrderStatus.DELIVERED);
+        }
+
+        return orderRepository.save(order);
+    }
+
+    // Update order requirements
+    public Order updateRequirements(UUID orderId, UpdateRequirementsRequest request) {
+        Order order = getOrderById(orderId);
+
+        // Only buyer can update requirements and only if order is in early stages
+        if (order.getStatus() == Order.OrderStatus.DELIVERED || order.getStatus() == Order.OrderStatus.COMPLETED) {
+            throw new RuntimeException("Cannot update requirements for orders that are delivered or completed");
+        }
+
+        order.setRequirements(request.getRequirements());
+        return orderRepository.save(order);
+    }
+
+    // Cancel order
+    public Order cancelOrder(UUID orderId) {
+        Order order = getOrderById(orderId);
+
+        // Check if order can be cancelled
+        if (order.getStatus() == Order.OrderStatus.DELIVERED || order.getStatus() == Order.OrderStatus.COMPLETED) {
+            throw new RuntimeException("Cannot cancel orders that are delivered or completed");
+        }
+
+        order.setStatus(Order.OrderStatus.CANCELED);
+        return orderRepository.save(order);
+    }
+
+    // Validate status transitions
+    private void validateStatusTransition(Order.OrderStatus currentStatus, Order.OrderStatus newStatus) {
+        // Add business logic for valid status transitions
+        // For example: NEW -> IN_PROGRESS -> DELIVERED -> COMPLETED
+        // or NEW -> CANCELED, IN_PROGRESS -> CANCELED (but not DELIVERED -> CANCELED)
+
+        if (currentStatus == Order.OrderStatus.COMPLETED) {
+            throw new RuntimeException("Cannot change status of completed orders");
+        }
+
+        if (currentStatus == Order.OrderStatus.CANCELED) {
+            throw new RuntimeException("Cannot change status of canceled orders");
+        }
     }
 
     private OrderResponseDTO mapToOrderResponseDTO(Order order) {
