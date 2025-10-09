@@ -54,6 +54,7 @@
 package com.example.order_service.service;
 
 import com.example.order_service.dto.GigWithPackageDetailsDTO;
+import com.example.order_service.dto.GigDetailsDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -67,7 +68,7 @@ public class GigServiceClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${gig.service.url:http://gigservice:8084}")
+    @Value("${gig.service.url:http://localhost:8084}")
     private String gigServiceBaseUrl;
 
     public GigServiceClient() {
@@ -100,6 +101,20 @@ public class GigServiceClient {
             throw new RuntimeException("Gig or package not found");
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch gig and package details: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get gig details by gig ID
+     */
+    public GigDetailsDTO getGigDetails(UUID gigId) {
+        try {
+            String url = gigServiceBaseUrl + "/api/gigs/" + gigId;
+            return restTemplate.getForObject(url, GigDetailsDTO.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new RuntimeException("Gig not found with ID: " + gigId);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch gig details: " + e.getMessage(), e);
         }
     }
 }

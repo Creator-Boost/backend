@@ -12,7 +12,7 @@ import java.util.UUID;
 public class OrderRequestDTO {
 
     private UUID gigId;
-    private UUID gigPackageId;
+    private UUID packageId; // Changed from gigPackageId to packageId for better API consistency
     private UUID buyerId;
     private UUID sellerId;
     private String requirements;
@@ -20,4 +20,3 @@ public class OrderRequestDTO {
 
 // Getters and Setters
 }
-

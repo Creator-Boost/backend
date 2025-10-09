@@ -38,15 +38,57 @@ public class OrderService {
 
     // Create a new order
     public OrderResponseDTO createOrder(OrderRequestDTO orderDTO) {
+        // Fetch gig details from gig service
+        GigDetailsDTO gigDetails = gigServiceClient.getGigDetails(orderDTO.getGigId());
+
+        System.out.println("DEBUG: Fetched gig details - Status: " + gigDetails.getStatus());
+        System.out.println("DEBUG: Number of packages: " + (gigDetails.getPackages() != null ? gigDetails.getPackages().size() : "null"));
+
+        // Validate gig status (ensure it's active)
+        if (!"ACTIVE".equalsIgnoreCase(gigDetails.getStatus())) {
+            throw new RuntimeException("Gig is not active and cannot be ordered");
+        }
+
+        // Find the package details if packageId is provided
+        GigDetailsDTO.GigPackageDTO selectedPackage = null;
+        if (orderDTO.getPackageId() != null) {
+            System.out.println("DEBUG: Looking for package ID: " + orderDTO.getPackageId());
+
+            if (gigDetails.getPackages() != null) {
+                for (GigDetailsDTO.GigPackageDTO pkg : gigDetails.getPackages()) {
+                    System.out.println("DEBUG: Available package - ID: " + pkg.getId() + ", Name: " + pkg.getName() + ", Price: " + pkg.getPrice());
+                }
+            }
+
+            selectedPackage = gigDetails.getPackages().stream()
+                .filter(pkg -> pkg.getId().equals(orderDTO.getPackageId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Package not found with ID: " + orderDTO.getPackageId()));
+
+            System.out.println("DEBUG: Selected package - Name: " + selectedPackage.getName() + ", Price: " + selectedPackage.getPrice());
+        }
+
         Order order = new Order();
         order.setGigId(orderDTO.getGigId());
-        order.setGigPackageId(orderDTO.getGigPackageId());
+        order.setGigPackageId(orderDTO.getPackageId()); // Using packageId from DTO
         order.setBuyerId(orderDTO.getBuyerId());
-        order.setSellerId(orderDTO.getSellerId());
+        order.setSellerId(gigDetails.getSellerId()); // Get sellerId from gig details
         order.setRequirements(orderDTO.getRequirements());
         order.setStatus(Order.OrderStatus.NEW);
         order.setOrderDate(java.time.LocalDateTime.now());
-        order.setDeliveryDate(orderDTO.getDeliveryDate());
+
+        // Set package-specific details if package is selected
+        if (selectedPackage != null) {
+            System.out.println("DEBUG: Setting package details - Name: " + selectedPackage.getName() + ", Price: " + selectedPackage.getPrice());
+            order.setAmount(selectedPackage.getPrice());
+            order.setPackageName(selectedPackage.getName());
+            // Calculate delivery date based on package delivery days
+            order.setDeliveryDate(java.time.LocalDateTime.now().plusDays(selectedPackage.getDeliveryDays()));
+        } else {
+            System.out.println("DEBUG: No package selected, using provided delivery date");
+            // Use provided delivery date if no package is selected
+            order.setDeliveryDate(orderDTO.getDeliveryDate());
+        }
 
         Order savedOrder = orderRepository.save(order);
         return mapToOrderResponseDTO(savedOrder);
@@ -253,6 +295,8 @@ public class OrderService {
         response.setGigPackageId(order.getGigPackageId());
         response.setBuyerId(order.getBuyerId());
         response.setSellerId(order.getSellerId());
+        response.setAmount(order.getAmount()); // Add missing amount mapping
+        response.setPackageName(order.getPackageName()); // Add missing packageName mapping
         response.setRequirements(order.getRequirements());
         response.setStatus(order.getStatus().toString());
         response.setOrderDate(order.getOrderDate());

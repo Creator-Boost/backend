@@ -224,6 +224,7 @@ public class GigService {
         if (gig.getPackages() != null) {
             List<GigPackageDTO> packages = gig.getPackages().stream().map(pkg -> {
                 GigPackageDTO pkgDTO = new GigPackageDTO();
+                pkgDTO.setId(pkg.getId()); // Add the missing package ID
                 pkgDTO.setName(pkg.getName());
                 pkgDTO.setPrice(pkg.getPrice());
                 pkgDTO.setDeliveryDays(pkg.getDeliveryDays());
@@ -288,6 +289,7 @@ public class GigService {
         if (gig.getPackages() != null) {
             List<GigPackageDTO> allPackages = gig.getPackages().stream().map(pkg -> {
                 GigPackageDTO pkgDTO = new GigPackageDTO();
+                pkgDTO.setId(pkg.getId()); // Add the missing package ID
                 pkgDTO.setName(pkg.getName());
                 pkgDTO.setPrice(pkg.getPrice());
                 pkgDTO.setDeliveryDays(pkg.getDeliveryDays());
