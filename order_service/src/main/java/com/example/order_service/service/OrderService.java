@@ -34,6 +34,9 @@ public class OrderService {
     private GigServiceClient gigServiceClient;
 
     @Autowired
+    private AuthServiceClient authServiceClient;
+
+    @Autowired
     private FileUploadService fileUploadService;
 
     // Create a new order
@@ -209,6 +212,22 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
+    // Get orders by buyer ID with user names
+    public List<OrderResponseDTO> getOrdersByBuyerWithNames(UUID buyerId) {
+        List<Order> orders = orderRepository.findByBuyerId(buyerId);
+        return orders.stream()
+                .map(this::mapToOrderResponseDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    // Get orders by seller ID with user names
+    public List<OrderResponseDTO> getOrdersBySellerWithNames(UUID sellerId) {
+        List<Order> orders = orderRepository.findBySellerId(sellerId);
+        return orders.stream()
+                .map(this::mapToOrderResponseDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     // Get orders by buyer ID
     public List<Order> getOrdersByBuyer(UUID buyerId) {
         return orderRepository.findByBuyerId(buyerId);
@@ -217,6 +236,11 @@ public class OrderService {
     // Get orders by seller ID
     public List<Order> getOrdersBySeller(UUID sellerId) {
         return orderRepository.findBySellerId(sellerId);
+    }
+
+    // Delete all orders (Admin functionality)
+    public void deleteAllOrders() {
+        orderRepository.deleteAll();
     }
 
     // Add delivery files
@@ -295,12 +319,30 @@ public class OrderService {
         response.setGigPackageId(order.getGigPackageId());
         response.setBuyerId(order.getBuyerId());
         response.setSellerId(order.getSellerId());
-        response.setAmount(order.getAmount()); // Add missing amount mapping
-        response.setPackageName(order.getPackageName()); // Add missing packageName mapping
+        response.setAmount(order.getAmount());
+        response.setPackageName(order.getPackageName());
         response.setRequirements(order.getRequirements());
         response.setStatus(order.getStatus().toString());
         response.setOrderDate(order.getOrderDate());
         response.setDeliveryDate(order.getDeliveryDate());
+
+        // Fetch user names from auth service
+        try {
+            UserProfileDTO buyerProfile = authServiceClient.getUserProfile(order.getBuyerId());
+            response.setBuyerName(buyerProfile.getName());
+        } catch (Exception e) {
+            System.err.println("Failed to fetch buyer name for ID: " + order.getBuyerId() + " - " + e.getMessage());
+            response.setBuyerName("Unknown");
+        }
+
+        try {
+            UserProfileDTO sellerProfile = authServiceClient.getUserProfile(order.getSellerId());
+            response.setSellerName(sellerProfile.getName());
+        } catch (Exception e) {
+            System.err.println("Failed to fetch seller name for ID: " + order.getSellerId() + " - " + e.getMessage());
+            response.setSellerName("Unknown");
+        }
+
         return response;
     }
 

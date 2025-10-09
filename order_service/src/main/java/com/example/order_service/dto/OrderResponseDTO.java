@@ -17,6 +17,10 @@ public class OrderResponseDTO {
     private UUID buyerId;
     private UUID sellerId;
 
+    // Add user names
+    private String buyerName;
+    private String sellerName;
+
     // Add financial and package information
     private BigDecimal amount;
     private String packageName;

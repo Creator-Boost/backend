@@ -32,6 +32,16 @@ public class GigController {
         return gigService.getAllGigs();
     }
 
+    @GetMapping("/seller/{sellerId}")
+    public List<GigResponseDTO> getGigsBySellerId(@PathVariable UUID sellerId) {
+        return gigService.getGigsBySellerId(sellerId);
+    }
+
+    @PatchMapping("/{id}/status")
+    public GigResponseDTO updateGigStatus(@PathVariable UUID id, @RequestBody UpdateGigStatusRequest request) {
+        return gigService.updateGigStatus(id, request.getStatus());
+    }
+
     @GetMapping("/{id}")
     public GigResponseDTO getGigById(@PathVariable UUID id) {
         return gigService.getGigById(id);

@@ -82,6 +82,13 @@ public class GigService {
                 .collect(Collectors.toList());
     }
 
+    public List<GigResponseDTO> getGigsBySellerId(UUID sellerId) {
+        List<Gig> gigs = gigRepository.findBySellerId(sellerId);
+        return gigs.stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
     public GigResponseDTO getGigById(UUID id) {
         Gig gig = gigRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Gig not found"));
@@ -148,6 +155,15 @@ public class GigService {
             throw new NoSuchElementException("Gig not found");
         }
         gigRepository.deleteById(id);
+    }
+
+    public GigResponseDTO updateGigStatus(UUID id, String status) {
+        Gig gig = gigRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Gig not found with ID: " + id));
+
+        gig.setStatus(status);
+        Gig updatedGig = gigRepository.save(gig);
+        return mapToResponseDTO(updatedGig);
     }
 
     /**
@@ -317,3 +333,4 @@ public class GigService {
         return dto;
     }
 }
+

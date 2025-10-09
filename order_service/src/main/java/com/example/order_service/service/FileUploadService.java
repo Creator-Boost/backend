@@ -31,8 +31,9 @@ public class FileUploadService {
                     Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                         ObjectUtils.asMap(
                             "public_id", publicId,
-                            "resource_type", "auto", // Auto-detect file type
-                            "folder", "order-deliveries"
+                            "resource_type", "raw",        // 👈 This is important for PDFs
+                            "upload_preset", "ml_default", // 👈 Use your public preset
+                            "folder", "uploads"            // optional, for organization
                         ));
 
                     // Get the secure URL from Cloudinary response

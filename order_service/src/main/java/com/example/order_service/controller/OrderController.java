@@ -63,15 +63,15 @@ public class OrderController {
 
     // Get orders by buyer ID
     @GetMapping("/buyer/{buyerId}")
-    public ResponseEntity<List<Order>> getOrdersByBuyer(@PathVariable UUID buyerId) {
-        List<Order> orders = orderService.getOrdersByBuyer(buyerId);
+    public ResponseEntity<List<OrderResponseDTO>> getOrdersByBuyer(@PathVariable UUID buyerId) {
+        List<OrderResponseDTO> orders = orderService.getOrdersByBuyerWithNames(buyerId);
         return ResponseEntity.ok(orders);
     }
 
     // Get orders by seller ID
     @GetMapping("/seller/{sellerId}")
-    public ResponseEntity<List<Order>> getOrdersBySeller(@PathVariable UUID sellerId) {
-        List<Order> orders = orderService.getOrdersBySeller(sellerId);
+    public ResponseEntity<List<OrderResponseDTO>> getOrdersBySeller(@PathVariable UUID sellerId) {
+        List<OrderResponseDTO> orders = orderService.getOrdersBySellerWithNames(sellerId);
         return ResponseEntity.ok(orders);
     }
 
@@ -112,6 +112,13 @@ public class OrderController {
     @PostMapping("/{id}/review")
     public ReviewDTO addReview(@PathVariable UUID id, @RequestBody ReviewDTO reviewDTO) {
         return orderService.addReview(id, reviewDTO);
+    }
+
+    // Delete all orders (Admin functionality)
+    @DeleteMapping("/all")
+    public ResponseEntity<String> deleteAllOrders() {
+        orderService.deleteAllOrders();
+        return ResponseEntity.ok("All orders have been deleted successfully");
     }
 
 }
