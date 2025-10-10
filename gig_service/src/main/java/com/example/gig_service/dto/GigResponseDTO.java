@@ -20,8 +20,12 @@ public class GigResponseDTO {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Rating fields for review functionality
+    private Double averageRating;
+    private Integer totalReviews;
+
     private List<GigImageDTO> images;
     private List<GigPackageDTO> packages;
     private List<GigFaqDTO> faqs;
 }
-

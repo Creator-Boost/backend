@@ -1,9 +1,11 @@
 package com.example.order_service.service;
 
 import com.example.order_service.dto.*;
+import com.example.order_service.entity.Dispute;
 import com.example.order_service.entity.Order;
 import com.example.order_service.entity.Payment;
 import com.example.order_service.entity.Review;
+import com.example.order_service.repository.DisputeRepository;
 import com.example.order_service.repository.OrderRepository;
 import com.example.order_service.repository.PaymentRepository;
 import com.example.order_service.repository.ReviewRepository;
@@ -29,6 +31,9 @@ public class OrderService {
 
     @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
+    private DisputeRepository disputeRepository;
 
     @Autowired
     private GigServiceClient gigServiceClient;
@@ -122,15 +127,43 @@ public class OrderService {
     public ReviewDTO addReview(UUID orderId, ReviewDTO reviewDTO) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
 
+        // Check if a review already exists for this order
+        if (order.getReview() != null) {
+            throw new RuntimeException("Review already exists for this order");
+        }
+
+        // Validate that the order is in a state where it can be reviewed (e.g., DELIVERED or COMPLETED)
+        if (order.getStatus() != Order.OrderStatus.DELIVERED && order.getStatus() != Order.OrderStatus.COMPLETED) {
+            throw new RuntimeException("Order must be delivered or completed before it can be reviewed");
+        }
+
         Review review = new Review();
-        review.setOrderId(orderId);
+        review.setOrder(order);  // Set the order relationship
         review.setGigId(order.getGigId());
         review.setReviewerId(order.getBuyerId());
         review.setRating(reviewDTO.getRating());
         review.setReviewText(reviewDTO.getReviewText());
-        review.setCreatedAt(java.time.LocalDateTime.now());
+        review.setCreatedAt(LocalDateTime.now());
+
+        // Validate rating range
+        if (reviewDTO.getRating() < 1 || reviewDTO.getRating() > 5) {
+            throw new RuntimeException("Rating must be between 1 and 5");
+        }
 
         Review savedReview = reviewRepository.save(review);
+
+        // Notify gig service about the new review to update gig statistics
+        try {
+            gigServiceClient.notifyGigReview(
+                order.getGigId(),
+                savedReview.getRating(),
+                savedReview.getReviewText(),
+                savedReview.getReviewerId()
+            );
+        } catch (Exception e) {
+            // Log the error but don't fail the review creation
+            System.err.println("Failed to notify gig service about review, but review was saved locally: " + e.getMessage());
+        }
 
         // Map the saved Review entity to ReviewDTO
         ReviewDTO responseDTO = new ReviewDTO();
@@ -297,6 +330,85 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    // Dispute-related methods
+
+    /**
+     * Add a dispute to an order
+     */
+    public DisputeDTO addDispute(UUID orderId, DisputeDTO disputeDTO, UUID userId) {
+        Order order = getOrderById(orderId);
+
+        // Validate that the user is either buyer or seller of the order
+        if (!order.getBuyerId().equals(userId) && !order.getSellerId().equals(userId)) {
+            throw new RuntimeException("Only buyer or seller can create disputes for this order");
+        }
+
+        // Create new dispute
+        Dispute dispute = new Dispute();
+        dispute.setTitle(disputeDTO.getTitle());
+        dispute.setDescription(disputeDTO.getDescription());
+        dispute.setUserId(userId);
+        dispute.setOrder(order);
+
+        Dispute savedDispute = disputeRepository.save(dispute);
+
+        // Map to DTO and return
+        return mapToDisputeDTO(savedDispute);
+    }
+
+    /**
+     * Get all disputes for a specific order
+     */
+    public List<DisputeDTO> getDisputesByOrderId(UUID orderId) {
+        // Verify order exists
+        getOrderById(orderId);
+
+        List<Dispute> disputes = disputeRepository.findByOrderId(orderId);
+        return disputes.stream()
+                .map(this::mapToDisputeDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Get order with all its disputes
+     */
+    public Order getOrderWithDisputes(UUID orderId) {
+        Order order = getOrderById(orderId);
+        // The disputes will be lazily loaded due to the @OneToMany relationship
+        // Force loading of disputes
+        order.getDisputes().size();
+        return order;
+    }
+
+    /**
+     * Update dispute status (resolve/unresolve)
+     */
+    public DisputeDTO updateDisputeStatus(UUID disputeId, UpdateDisputeStatusRequest request) {
+        Optional<Dispute> disputeOptional = disputeRepository.findById(disputeId);
+        if (disputeOptional.isEmpty()) {
+            throw new RuntimeException("Dispute not found with ID: " + disputeId);
+        }
+
+        Dispute dispute = disputeOptional.get();
+        dispute.setResolved(request.getResolved());
+
+        Dispute updatedDispute = disputeRepository.save(dispute);
+        return mapToDisputeDTO(updatedDispute);
+    }
+
+    /**
+     * Update admin status of an order (Admin functionality)
+     */
+    public Order updateAdminStatus(UUID orderId, UpdateAdminStatusRequest request) {
+        Order order = getOrderById(orderId);
+
+        // Validate admin status transition if needed
+        validateAdminStatusTransition(order.getAdminStatus(), request.getAdminStatus());
+
+        order.setAdminStatus(request.getAdminStatus());
+        return orderRepository.save(order);
+    }
+
     // Validate status transitions
     private void validateStatusTransition(Order.OrderStatus currentStatus, Order.OrderStatus newStatus) {
         // Add business logic for valid status transitions
@@ -310,6 +422,19 @@ public class OrderService {
         if (currentStatus == Order.OrderStatus.CANCELED) {
             throw new RuntimeException("Cannot change status of canceled orders");
         }
+    }
+
+    // Validate admin status transitions
+    private void validateAdminStatusTransition(Order.AdminStatus currentStatus, Order.AdminStatus newStatus) {
+        // Add business logic for valid admin status transitions
+        // For example: PENDING -> PAID or PENDING -> REFUNDED
+        // But not PAID -> PENDING or REFUNDED -> PENDING (depending on business rules)
+
+        if (currentStatus == Order.AdminStatus.REFUNDED && newStatus == Order.AdminStatus.PAID) {
+            throw new RuntimeException("Cannot change admin status from REFUNDED to PAID");
+        }
+
+        // You can add more validation rules here based on your business requirements
     }
 
     private OrderResponseDTO mapToOrderResponseDTO(Order order) {
@@ -366,5 +491,16 @@ public class OrderService {
         response.setPackageDescription(gigDetails.getSelectedPackage().getDescription());
 
         return response;
+    }
+
+    private DisputeDTO mapToDisputeDTO(Dispute dispute) {
+        DisputeDTO dto = new DisputeDTO();
+        dto.setId(dispute.getId());
+        dto.setTitle(dispute.getTitle());
+        dto.setDescription(dispute.getDescription());
+        dto.setCreatedDate(dispute.getCreatedDate());
+        dto.setUserId(dispute.getUserId());
+        dto.setResolved(dispute.getResolved());
+        return dto;
     }
 }

@@ -195,4 +195,64 @@ public class GigController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    /**
+     * Handle review notification from order service to update gig rating statistics
+     */
+    @PostMapping("/{gigId}/reviews")
+    public ResponseEntity<Map<String, String>> handleReviewNotification(
+            @PathVariable UUID gigId,
+            @RequestBody Map<String, Object> reviewData) {
+        try {
+            Integer rating = (Integer) reviewData.get("rating");
+            String reviewText = (String) reviewData.get("reviewText");
+
+            // Handle UUID conversion more safely
+            Object reviewerIdObj = reviewData.get("reviewerId");
+            UUID reviewerId;
+            if (reviewerIdObj instanceof String) {
+                reviewerId = UUID.fromString((String) reviewerIdObj);
+            } else {
+                reviewerId = (UUID) reviewerIdObj;
+            }
+
+            String createdAt = (String) reviewData.get("createdAt");
+
+            // Call service to update gig rating statistics
+            gigService.updateGigRatingFromReview(gigId, rating);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "Review notification processed successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Failed to process review notification: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    /**
+     * Admin endpoint to manually set gig rating - useful for fixing existing data
+     */
+    @PostMapping("/{gigId}/admin/set-rating")
+    public ResponseEntity<Map<String, String>> setGigRating(
+            @PathVariable UUID gigId,
+            @RequestParam Double averageRating,
+            @RequestParam Integer totalReviews) {
+        try {
+            gigService.setGigRating(gigId, averageRating, totalReviews);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "Gig rating updated successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Failed to update gig rating: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 }

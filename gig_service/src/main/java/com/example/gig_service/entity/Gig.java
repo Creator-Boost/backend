@@ -25,6 +25,10 @@ public class Gig {
     private String category;
     private String status; // "ACTIVE", "PAUSED"
 
+    // Rating fields for review functionality
+    private Double averageRating = 0.0;
+    private Integer totalReviews = 0;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -50,5 +54,3 @@ public class Gig {
     }
 
 }
-
-

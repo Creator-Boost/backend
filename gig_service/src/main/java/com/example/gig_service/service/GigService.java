@@ -225,6 +225,10 @@ public class GigService {
         dto.setCreatedAt(gig.getCreatedAt());
         dto.setUpdatedAt(gig.getUpdatedAt());
 
+        // Map rating fields
+        dto.setAverageRating(gig.getAverageRating());
+        dto.setTotalReviews(gig.getTotalReviews());
+
         // --- Map Images ---
         if (gig.getImages() != null) {
             List<GigImageDTO> images = gig.getImages().stream().map(img -> {
@@ -332,5 +336,47 @@ public class GigService {
         dto.setDescription(gigPackage.getDescription());
         return dto;
     }
-}
 
+    /**
+     * Update gig rating statistics when a new review is added
+     */
+    public void updateGigRatingFromReview(UUID gigId, Integer newRating) {
+        Gig gig = gigRepository.findById(gigId)
+            .orElseThrow(() -> new NoSuchElementException("Gig not found with ID: " + gigId));
+
+        // Calculate new average rating
+        int currentTotalReviews = gig.getTotalReviews();
+        double currentAverageRating = gig.getAverageRating();
+
+        // Calculate the new average rating
+        double totalRatingPoints = currentAverageRating * currentTotalReviews;
+        totalRatingPoints += newRating;
+        int newTotalReviews = currentTotalReviews + 1;
+        double newAverageRating = totalRatingPoints / newTotalReviews;
+
+        // Update gig with new rating statistics
+        gig.setAverageRating(Math.round(newAverageRating * 100.0) / 100.0); // Round to 2 decimal places
+        gig.setTotalReviews(newTotalReviews);
+
+        gigRepository.save(gig);
+
+        System.out.println("Updated gig " + gigId + " rating: " + gig.getAverageRating() +
+                          " (" + gig.getTotalReviews() + " reviews)");
+    }
+
+    /**
+     * Manually set gig rating - useful for fixing existing data
+     */
+    public void setGigRating(UUID gigId, Double averageRating, Integer totalReviews) {
+        Gig gig = gigRepository.findById(gigId)
+            .orElseThrow(() -> new NoSuchElementException("Gig not found with ID: " + gigId));
+
+        gig.setAverageRating(averageRating);
+        gig.setTotalReviews(totalReviews);
+
+        gigRepository.save(gig);
+
+        System.out.println("Manually set gig " + gigId + " rating: " + gig.getAverageRating() +
+                          " (" + gig.getTotalReviews() + " reviews)");
+    }
+}

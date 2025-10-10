@@ -121,4 +121,63 @@ public class OrderController {
         return ResponseEntity.ok("All orders have been deleted successfully");
     }
 
+    // Dispute-related endpoints
+
+    /**
+     * Add a dispute to an order
+     * Both buyer and seller can create disputes for an order
+     */
+    @PostMapping("/{orderId}/disputes")
+    public ResponseEntity<DisputeDTO> addDispute(
+        @PathVariable UUID orderId,
+        @RequestBody DisputeDTO disputeDTO,
+        @RequestParam UUID userId // In a real app, this would come from authentication context
+    ) {
+        DisputeDTO createdDispute = orderService.addDispute(orderId, disputeDTO, userId);
+        return ResponseEntity.ok(createdDispute);
+    }
+
+    /**
+     * Get all disputes for a specific order
+     */
+    @GetMapping("/{orderId}/disputes")
+    public ResponseEntity<List<DisputeDTO>> getDisputesByOrderId(@PathVariable UUID orderId) {
+        List<DisputeDTO> disputes = orderService.getDisputesByOrderId(orderId);
+        return ResponseEntity.ok(disputes);
+    }
+
+    /**
+     * Get order with all its data including disputes
+     */
+    @GetMapping("/{orderId}/with-disputes")
+    public ResponseEntity<Order> getOrderWithDisputes(@PathVariable UUID orderId) {
+        Order order = orderService.getOrderWithDisputes(orderId);
+        return ResponseEntity.ok(order);
+    }
+
+    /**
+     * Update dispute status (resolve/unresolve)
+     */
+    @PatchMapping("/disputes/{disputeId}/status")
+    public ResponseEntity<DisputeDTO> updateDisputeStatus(
+        @PathVariable UUID disputeId,
+        @RequestBody UpdateDisputeStatusRequest request
+    ) {
+        DisputeDTO updatedDispute = orderService.updateDisputeStatus(disputeId, request);
+        return ResponseEntity.ok(updatedDispute);
+    }
+
+    /**
+     * Update admin status of an order (Admin functionality)
+     * Only admins should have access to this endpoint
+     */
+    @PatchMapping("/{orderId}/admin-status")
+    public ResponseEntity<Order> updateAdminStatus(
+        @PathVariable UUID orderId,
+        @RequestBody UpdateAdminStatusRequest request
+    ) {
+        Order updatedOrder = orderService.updateAdminStatus(orderId, request);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
 }

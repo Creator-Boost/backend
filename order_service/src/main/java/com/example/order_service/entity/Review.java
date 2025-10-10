@@ -1,5 +1,6 @@
 package com.example.order_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,8 +22,10 @@ public class Review {
     private UUID reviewerId;
 
     // JPA Relationship - One-to-One with Order
+    // JsonBackReference prevents circular reference during JSON serialization
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
+    @JsonBackReference
     private Order order;
 
     private Integer rating;

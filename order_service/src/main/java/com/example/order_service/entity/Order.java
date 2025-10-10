@@ -1,5 +1,6 @@
 package com.example.order_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,6 +36,10 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'PENDING'")
+    private AdminStatus adminStatus = AdminStatus.PENDING;
+
     private LocalDateTime orderDate;
     private LocalDateTime deliveryDate;
 
@@ -46,10 +51,26 @@ public class Order {
     private List<Payment> payments;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Review review;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Dispute> disputes;
 
     public enum OrderStatus {
         NEW, IN_PROGRESS, DELIVERED, COMPLETED, PAID, CANCELED
+    }
+
+    public enum AdminStatus {
+        PENDING, PAID, REFUNDED
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (adminStatus == null) {
+            adminStatus = AdminStatus.PENDING;
+        }
     }
 
     // Getters and Setters

@@ -117,4 +117,35 @@ public class GigServiceClient {
             throw new RuntimeException("Failed to fetch gig details: " + e.getMessage(), e);
         }
     }
+
+    /**
+     * Notify gig service about a new review to update gig rating statistics
+     */
+    public void notifyGigReview(UUID gigId, Integer rating, String reviewText, UUID reviewerId) {
+        try {
+            String url = gigServiceBaseUrl + "/api/gigs/" + gigId + "/reviews";
+
+            System.out.println("Attempting to notify gig service at: " + url);
+
+            // Create request body with review details
+            Map<String, Object> reviewData = Map.of(
+                "rating", rating,
+                "reviewText", reviewText,
+                "reviewerId", reviewerId.toString(), // Convert UUID to string explicitly
+                "createdAt", java.time.LocalDateTime.now().toString()
+            );
+
+            System.out.println("Sending review data: " + reviewData);
+
+            Object response = restTemplate.postForObject(url, reviewData, Map.class);
+            System.out.println("Gig service notification successful: " + response);
+
+        } catch (Exception e) {
+            // Log the error but don't fail the review creation
+            System.err.println("Failed to notify gig service about review: " + e.getMessage());
+            e.printStackTrace();
+            // In a production environment, you might want to use a proper logger
+            // and possibly implement a retry mechanism or queue for failed notifications
+        }
+    }
 }
