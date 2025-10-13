@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -104,6 +105,56 @@ public class ProfileController {
     public ResponseEntity<List<ProfileResponse>> getAllUsers() {
         List<ProfileResponse> users = profileService.getAllUsers();
         return ResponseEntity.ok(users);
+    }
+
+    @PutMapping("/users/{userId}/suspend")
+    public ResponseEntity<?> suspendUser(@PathVariable("userId") String userId) {
+        profileService.updateUserSuspension(userId, true);
+        return ResponseEntity.ok(Map.of("message", "User suspended successfully"));
+    }
+
+    @PutMapping("/users/{userId}/activate")
+    public ResponseEntity<?> activateUser(@PathVariable("userId") String userId) {
+        profileService.updateUserSuspension(userId, false);
+        return ResponseEntity.ok(Map.of("message", "User activated successfully"));
+    }
+
+    @GetMapping("/providers/pending")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PendingProviderResponse>> getPendingProviders() {
+        return ResponseEntity.ok(profileService.getPendingProviderApprovals());
+    }
+
+    @PostMapping("/providers/{userId}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> approveProvider(@PathVariable("userId") String userId) {
+        profileService.approveProvider(userId);
+        return ResponseEntity.ok(Map.of("message", "Provider approved successfully"));
+    }
+
+    @PostMapping("/provider/request-approval")
+    public ResponseEntity<?> requestProviderApproval(@CurrentSecurityContext(expression = "authentication.name") String email) {
+        profileService.requestProviderApproval(email);
+        return ResponseEntity.ok(Map.of("message", "Approval request sent to admin"));
+    }
+
+    @PostMapping("/provider/request-note")
+    public ResponseEntity<ProfileNoteResponse> createOrUpdateNote(
+            @RequestParam("providerEmail") String providerEmail,
+            @RequestParam("note") String note,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+
+        ProfileNoteResponse response = profileService.createOrUpdateNote(providerEmail, note, file);
+        return ResponseEntity.ok(response);
+    }
+
+    // Get note by provider email
+    @GetMapping("/provider/note")
+    public ResponseEntity<ProfileNoteResponse> getNoteByProvider(
+            @RequestParam("providerEmail") String providerEmail) {
+
+        ProfileNoteResponse response = profileService.getNoteByProvider(providerEmail);
+        return ResponseEntity.ok(response);
     }
 
 }

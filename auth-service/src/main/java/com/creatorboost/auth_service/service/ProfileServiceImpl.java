@@ -1,13 +1,12 @@
 package com.creatorboost.auth_service.service;
 
 import com.creatorboost.auth_service.entiy.ClientProfile;
+import com.creatorboost.auth_service.entiy.ProfileNote;
 import com.creatorboost.auth_service.entiy.ProviderProfile;
 import com.creatorboost.auth_service.entiy.UserEntity;
-import com.creatorboost.auth_service.io.ClientProfileRequset;
-import com.creatorboost.auth_service.io.ProfileRequest;
-import com.creatorboost.auth_service.io.ProfileResponse;
-import com.creatorboost.auth_service.io.ProviderProfileRequest;
+import com.creatorboost.auth_service.io.*;
 import com.creatorboost.auth_service.repository.ClientProfileRepository;
+import com.creatorboost.auth_service.repository.ProfileNoteRepository;
 import com.creatorboost.auth_service.repository.ProviderProfileRepository;
 import com.creatorboost.auth_service.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -25,6 +24,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,6 +36,7 @@ public class ProfileServiceImpl implements   ProfileService {
     private final CloudinaryClient cloudinaryClient;
     private final ProviderProfileRepository providerProfileRepository;
     private final ClientProfileRepository clientProfileRepository;
+    private final ProfileNoteRepository profileNoteRepository;
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ProfileServiceImpl.class);
 
@@ -72,19 +73,13 @@ public class ProfileServiceImpl implements   ProfileService {
         ClientProfile clientProfile = null;
 
         switch (existingUser.getRole()) {
-            //ProviderProfile profile = providerProfileRepository.findById(String.valueOf(user.getId()))
             case PROVIDER -> {
                 providerProfile = providerProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
-                // Force initialization of lazy collections within transaction
                 if (providerProfile != null) {
-                    // This will trigger loading of lazy collections
-                    providerProfile.getLanguages().size(); // Force initialization
-                    providerProfile.getSkills().size(); // If skills is also lazy
-                    providerProfile.getCertifications().size(); // If certifications is also lazy
+                    // Force initialization of lazy collections if needed
                 }
             }
             case CLIENT -> clientProfile = clientProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
-            // Optionally handle ADMIN or others if needed
         }
         return convertToProfileResponse(existingUser, providerProfile, clientProfile);
     }
@@ -203,7 +198,25 @@ public class ProfileServiceImpl implements   ProfileService {
 
 
     }
+
     private ProfileResponse convertToProfileResponse(UserEntity user, ProviderProfile providerProfile, ClientProfile clientProfile) {
+        ProviderProfileResponse providerProfileResponse = null;
+        if (providerProfile != null) {
+            // Force initialization of lazy collections
+            if (providerProfile.getLanguages() != null) providerProfile.getLanguages().size();
+            if (providerProfile.getSkills() != null) providerProfile.getSkills().size();
+            if (providerProfile.getCertifications() != null) providerProfile.getCertifications().size();
+            providerProfileResponse = ProviderProfileResponse.builder()
+                    .title(providerProfile.getTitle())
+                    .location(providerProfile.getLocation())
+                    .description(providerProfile.getDescription())
+                    .languages(providerProfile.getLanguages() != null ? List.copyOf(providerProfile.getLanguages()) : null)
+                    .skills(providerProfile.getSkills() != null ? List.copyOf(providerProfile.getSkills()) : null)
+                    .certifications(providerProfile.getCertifications() != null ? List.copyOf(providerProfile.getCertifications()) : null)
+                    .isApprovalRequested(providerProfile.isApprovalRequested())
+                    .isApprovedByAdmin(providerProfile.isApprovedByAdmin())
+                    .build();
+        }
         return ProfileResponse.builder()
                 .name(user.getName())
                 .email(user.getEmail())
@@ -211,17 +224,19 @@ public class ProfileServiceImpl implements   ProfileService {
                 .role(user.getRole())
                 .isAccountVerified(user.isAccountVerified())
                 .imageUrl(user.getImageUrl())
-                .providerProfile(providerProfile)
+                .providerProfile(providerProfileResponse)
                 .clientProfile(clientProfile)
                 .createdAt(user.getCreatedAt())
+                .isSuspended(user.isSuspended())
                 .build();
     }
 
 
     @Override
     public String uploadFile(MultipartFile file) {
-        String fileNameExtension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
-        String key = UUID.randomUUID().toString() + "." + fileNameExtension;
+        String fileName = file.getOriginalFilename();
+        String fileNameExtension = (fileName != null && fileName.contains(".")) ? fileName.substring(fileName.lastIndexOf(".") + 1) : "";
+        String key = UUID.randomUUID() + (fileNameExtension.isEmpty() ? "" : "." + fileNameExtension);
 
         try {
             return cloudinaryClient.uploadFile(file, key);
@@ -344,9 +359,7 @@ public class ProfileServiceImpl implements   ProfileService {
 
                 providerProfile = providerProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
                 if (providerProfile != null) {
-                    providerProfile.getLanguages().size();
-                    providerProfile.getSkills().size();
-                    providerProfile.getCertifications().size();
+                    // Force initialization of lazy collections if needed
                 }
             }
             case CLIENT -> clientProfile = clientProfileRepository.findById(String.valueOf(existingUser.getId())).orElse(null);
@@ -357,6 +370,8 @@ public class ProfileServiceImpl implements   ProfileService {
     }
 
 
+
+
     private String extractPublicIdFromUrl(String url) {
         try {
             // Example URL: https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/abc123.jpg
@@ -365,6 +380,143 @@ public class ProfileServiceImpl implements   ProfileService {
             return filenameWithExt.substring(0, filenameWithExt.lastIndexOf('.')); // abc123
         } catch (Exception e) {
             throw new RuntimeException("Failed to extract public ID from image URL", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateUserSuspension(String userId, boolean suspend) {
+        UserEntity user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        user.setSuspended(suspend);
+        userRepository.save(user);
+
+    }
+
+    @Override
+    @Transactional
+    public List<PendingProviderResponse> getPendingProviderApprovals() {
+        List<ProviderProfile> profiles = providerProfileRepository.findByIsApprovalRequestedTrueAndIsApprovedByAdminFalse();
+        return profiles.stream().map(profile -> {
+            Optional<ProfileNote> noteOpt = profileNoteRepository.findByProvider(profile);
+            String noteText = noteOpt.map(ProfileNote::getNote).orElse(null);
+            String fileUrl = noteOpt.map(ProfileNote::getFileUrl).orElse(null);
+            String fileType = noteOpt.map(ProfileNote::getFileType).orElse(null);
+
+            return new PendingProviderResponse(
+                    profile.getUser().getUserId(),
+                    profile.getUser().getName(),
+                    profile.getUser().getEmail(),
+                    profile.getUser().getImageUrl(),
+                    profile.isApprovalRequested(),
+                    profile.isApprovedByAdmin(),
+                    profile.getTitle(),
+                    profile.getLocation(),
+                    profile.getDescription(),
+                    noteText,
+                    fileUrl,
+                    fileType
+            );
+        }).toList();
+    }
+
+    @Override
+    @Transactional
+    public void approveProvider(String userId) {
+        // Find the user by userId (UUID string)
+        UserEntity user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // Find the corresponding provider profile
+        ProviderProfile profile = providerProfileRepository.findById(String.valueOf(user.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Provider profile not found"));
+
+        // Update the flags
+        profile.setApprovedByAdmin(true);
+        profile.setApprovalRequested(false);
+
+        // Save the updated profile
+        providerProfileRepository.save(profile);
+
+        // Optional: log or send Kafka notification
+        logger.info("✅ Provider approved by admin: {}", user.getEmail());
+    }
+
+    @Override
+    @Transactional
+    public void requestProviderApproval(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        ProviderProfile profile = providerProfileRepository.findById(String.valueOf(user.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Provider profile not found"));
+        profile.setApprovalRequested(true);
+        providerProfileRepository.save(profile);
+    }
+
+    @Override
+    @Transactional
+    public ProfileNoteResponse createOrUpdateNote(String providerEmail, String note, MultipartFile file) {
+        // Find provider profile by email
+        UserEntity user = userRepository.findByEmail(providerEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.getRole() != null && user.getRole().name().equals("PROVIDER")) {
+            ProviderProfile providerProfile = providerProfileRepository.findById(String.valueOf(user.getId()))
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Provider profile not found"));
+
+            // 4. Check if a note already exists for this provider
+            ProfileNote profileNote = profileNoteRepository.findByProvider(providerProfile)
+                    .orElse(ProfileNote.builder().provider(providerProfile).build());
+
+            profileNote.setNote(note);
+
+            // Handle file upload if file is present
+            if (file != null && !file.isEmpty()) {
+                String fileUrl = uploadFile(file);
+                profileNote.setFileUrl(fileUrl);
+                String fileType = file.getContentType();
+                profileNote.setFileType(fileType);
+            }
+
+            // Save note
+            ProfileNote savedNote = profileNoteRepository.save(profileNote);
+
+            return ProfileNoteResponse.builder()
+                    .providerName(savedNote.getProvider().getUser().getName())
+                    .providerEmail(savedNote.getProvider().getUser().getEmail())
+                    .note(savedNote.getNote())
+                    .fileUrl(savedNote.getFileUrl())
+                    .fileType(savedNote.getFileType())
+                    .createdAt(savedNote.getCreatedAt())
+                    .build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only providers can create notes");
+        }
+    }
+
+    @Override
+    @Transactional
+    public ProfileNoteResponse getNoteByProvider(String providerEmail) {
+        UserEntity user = userRepository.findByEmail(providerEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.getRole() != null && user.getRole().name().equals("PROVIDER")) {
+            ProviderProfile providerProfile = providerProfileRepository.findById(String.valueOf(user.getId()))
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Provider profile not found"));
+            ProfileNote note = profileNoteRepository.findByProvider(providerProfile)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile note not found"));
+
+            return ProfileNoteResponse.builder()
+                    .providerName(note.getProvider().getUser().getName())
+                    .providerEmail(note.getProvider().getUser().getEmail())
+                    .note(note.getNote())
+                    .fileUrl(note.getFileUrl())
+                    .fileType(note.getFileType())
+                    .createdAt(note.getCreatedAt())
+                    .build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only providers have notes");
         }
     }
 

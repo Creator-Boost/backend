@@ -1,10 +1,7 @@
 package com.creatorboost.auth_service.entiy;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -14,6 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
+
 public class ProviderProfile {
     @Id
     private Long userId; // Same as in UserEntity
@@ -41,5 +40,12 @@ public class ProviderProfile {
 
     @ElementCollection
     private List<String> certifications;
-}
 
+    @Column(nullable = false)
+    private boolean isApprovedByAdmin = false;
+
+    @Column(nullable = false)
+    private boolean isApprovalRequested = false;
+
+
+}

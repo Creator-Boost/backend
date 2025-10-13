@@ -25,6 +25,8 @@ import org.springframework.web.servlet.View;
 import java.util.HashMap;
 import java.util.Map;
 
+
+
 @RestController
 @RequiredArgsConstructor
 
@@ -45,6 +47,16 @@ public class AuthController {
             // Fetch user entity to get role
             UserEntity userEntity = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+            // Check if user is suspended
+            if (userEntity.isSuspended()) {
+                Map<String,Object> map = new HashMap<>();
+                map.put("error", true);
+                map.put("message", "User account is suspended");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(map);
+            }
+
+
             String jwt = jwtUtil.generateToken(userDetails, userEntity.getRole().name());
             ResponseCookie cookie = ResponseCookie.from("jwt", jwt)
                     .httpOnly(true)

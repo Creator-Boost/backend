@@ -42,6 +42,8 @@ public class UserEntity {
     private Instant createdAt;
     @UpdateTimestamp
     private Instant  updatedAt;
+    @Column(nullable = false)
+    private boolean isSuspended = false;
 
 
 }
