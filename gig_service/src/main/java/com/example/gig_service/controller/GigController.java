@@ -206,7 +206,7 @@ public class GigController {
         try {
             Integer rating = (Integer) reviewData.get("rating");
             String reviewText = (String) reviewData.get("reviewText");
-
+            
             // Handle UUID conversion more safely
             Object reviewerIdObj = reviewData.get("reviewerId");
             UUID reviewerId;
@@ -215,7 +215,7 @@ public class GigController {
             } else {
                 reviewerId = (UUID) reviewerIdObj;
             }
-
+            
             String createdAt = (String) reviewData.get("createdAt");
 
             // Call service to update gig rating statistics
